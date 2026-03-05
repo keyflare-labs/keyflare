@@ -1,0 +1,3 @@
+# Local development master key (NOT for production!)
+# This is fine to use as-is for local dev — the local D1 is ephemeral.
+MASTER_KEY=keyflare-local-dev-master-key-not-for-production

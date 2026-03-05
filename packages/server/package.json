@@ -1,0 +1,23 @@
+{
+  "name": "@keyflare/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keyflare API — Cloudflare Worker + D1",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@keyflare/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "wrangler": "^3.0.0",
+    "vitest": "^2.0.0",
+    "@cloudflare/workers-types": "^4.0.0"
+  }
+}

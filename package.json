@@ -1,0 +1,20 @@
+{
+  "name": "keyflare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open Source Secrets Manager built entirely on Cloudflare",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=packages/server",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}
