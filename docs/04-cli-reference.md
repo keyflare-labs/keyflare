@@ -332,7 +332,7 @@ There are two types of API keys:
 - Use for: CI/CD pipelines, deployment scripts, runtime services.
 
 ```bash
-# List all keys
+# List all keys (shows scopes and permissions)
 kfl keys list
 
 # Create a user key (full admin access)
@@ -359,6 +359,14 @@ kfl keys create --type system \
 
 # Revoke a key
 kfl keys revoke <prefix>
+```
+
+**List output example:**
+```
+PREFIX          TYPE    LABEL              PERMISSION  SCOPES               CREATED
+kfl_user_a1b2   user    bootstrap          full        *                    2024-01-15
+kfl_sys_c3d4    system  github-actions     read        my-api:production    2024-01-16
+kfl_sys_d4e5    system  deployer           readwrite   my-api:*, frontend:* 2024-01-17
 ```
 
 #### `kfl keys create` Flags

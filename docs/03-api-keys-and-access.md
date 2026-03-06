@@ -126,12 +126,20 @@ kfl keys create --type system \
 kfl keys list
 
 # Output:
-# PREFIX          TYPE    LABEL                 PERMISSIONS  SCOPES                CREATED
-# kfl_user_a1b2   user    bootstrap             full         *                     2024-01-15
-# kfl_user_b2c3   user    backup-admin-key      full         *                     2024-01-16
-# kfl_sys_c3d4    system  github-actions-prod   read         my-api:production     2024-01-16
-# kfl_sys_d4e5    system  local-dev             readwrite    my-api:*              2024-01-17
+# PREFIX          TYPE    LABEL                 PERMISSION  SCOPES                CREATED
+# kfl_user_a1b2   user    bootstrap             full        *                     2024-01-15
+# kfl_user_b2c3   user    backup-admin-key      full        *                     2024-01-16
+# kfl_sys_c3d4    system  github-actions-prod   read        my-api:production     2024-01-16
+# kfl_sys_d4e5    system  local-dev             readwrite   my-api:*              2024-01-17
 ```
+
+The list shows:
+- **PREFIX** — First 12 characters of the key (used for identification and revocation)
+- **TYPE** — `user` (full admin) or `system` (scoped)
+- **LABEL** — Human-readable name
+- **PERMISSION** — `full` for user keys, `read` or `readwrite` for system keys
+- **SCOPES** — Project:environment pairs for system keys, `*` for user keys
+- **CREATED** — Creation date
 
 Note: Only the prefix is shown. The full key is never retrievable after creation.
 
