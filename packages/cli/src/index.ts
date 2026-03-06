@@ -35,7 +35,9 @@ const program = new Command();
 program
   .name("kfl")
   .description("Keyflare — open-source secrets manager on Cloudflare")
-  .version("0.1.0");
+  .version("0.1.0")
+  .allowExcessArguments(false)
+  .showHelpAfterError(true);
 
 // ─── kfl init ────────────────────────────────────────────────
 program
@@ -63,7 +65,8 @@ program
 // ─── kfl dev ─────────────────────────────────────────────────
 const dev = program
   .command("dev")
-  .description("Local development helpers (no Cloudflare account required)");
+  .description("Local development helpers (no Cloudflare account required)")
+  .action(() => dev.help());
 
 dev
   .command("init")
@@ -92,7 +95,8 @@ dev
 // ─── kfl projects ────────────────────────────────────────────
 const projects = program
   .command("projects")
-  .description("Manage projects");
+  .description("Manage projects")
+  .action(() => projects.help());
 
 projects
   .command("list")
@@ -119,7 +123,8 @@ projects
 // ─── kfl configs ─────────────────────────────────────────────
 const configs = program
   .command("configs")
-  .description("Manage configs (environments) within a project");
+  .description("Manage configs (environments) within a project")
+  .action(() => configs.help());
 
 configs
   .command("list")
@@ -149,7 +154,8 @@ configs
 // ─── kfl secrets ─────────────────────────────────────────────
 const secrets = program
   .command("secrets")
-  .description("Manage secrets within a config");
+  .description("Manage secrets within a config")
+  .action(() => secrets.help());
 
 secrets
   .command("list")
@@ -225,7 +231,10 @@ program
   });
 
 // ─── kfl keys ────────────────────────────────────────────────
-const keys = program.command("keys").description("Manage API keys");
+const keys = program
+  .command("keys")
+  .description("Manage API keys")
+  .action(() => keys.help());
 
 keys
   .command("list")
