@@ -134,6 +134,43 @@ npm run db:migrate:remote
 
 The generated migration files are committed to the repo and applied automatically in tests via `applyD1Migrations` from `cloudflare:test`.
 
+## Drizzle Studio
+
+Drizzle Studio provides a browser-based GUI to inspect and edit the database.
+
+### Local (wrangler dev DB)
+
+Studio reads the SQLite file that `wrangler dev` creates under `.wrangler/state/v3/d1/`. You need to have run `npm run dev` at least once so that file exists.
+
+```bash
+# Terminal 1 — keep the dev server running (creates/maintains the SQLite file)
+npm run dev --workspace=packages/server
+
+# Terminal 2 — open Studio
+npm run db:studio --workspace=packages/server
+# → https://local.drizzle.studio (opens in browser, proxies to localhost:4983)
+```
+
+> **Note:** Studio and `wrangler dev` can run simultaneously — they both open the same SQLite file (Studio read-only, wrangler read-write).
+
+### Remote (production D1)
+
+Set the following environment variables, then run the remote studio script:
+
+```bash
+export DRIZZLE_REMOTE=true
+export CLOUDFLARE_ACCOUNT_ID=<your-account-id>
+export CLOUDFLARE_D1_DATABASE_ID=<database-id-from-kfl-init>
+export CLOUDFLARE_D1_TOKEN=<api-token-with-D1-edit-permissions>
+
+npm run db:studio:remote --workspace=packages/server
+# → https://local.drizzle.studio
+```
+
+The `database_id` is logged during `kfl init` and is also visible in the Cloudflare dashboard under **Workers & Pages → D1 → keyflare-db**.
+
+> ⚠️ Remote Studio connects directly to production data. All values shown are AES-256-GCM ciphertext — unreadable without the MASTER_KEY. Use with care.
+
 ## Testing
 
 Tests run entirely inside a Miniflare Worker runtime — no network calls, no Cloudflare account needed.

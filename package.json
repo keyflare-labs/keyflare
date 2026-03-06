@@ -11,7 +11,8 @@
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
-    "typecheck": "npm run typecheck --workspaces"
+    "typecheck": "npm run typecheck --workspaces",
+    "kfl": "npm run dev --workspace=packages/cli"
   },
   "engines": {
     "node": ">=20.0.0"

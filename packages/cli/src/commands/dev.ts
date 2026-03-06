@@ -29,7 +29,7 @@ function serverDir(): string {
   const here = new URL(".", import.meta.url).pathname;
   // When built: packages/cli/dist/commands/dev.js → ../../server
   // When running via tsx: packages/cli/src/commands/dev.ts → ../../server
-  return path.resolve(here, "../../server");
+  return path.resolve(here, "../../../server");
 }
 
 function devVarsPath(): string {
