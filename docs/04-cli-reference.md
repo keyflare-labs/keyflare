@@ -338,30 +338,64 @@ kfl keys list
 # Create a user key (full admin access)
 kfl keys create --type user --label "my-admin-key"
 
-# Create a system key for CI/CD (read-only, production only)
+# Revoke a key
+kfl keys revoke <prefix>
+```
+
+#### Creating System Keys
+
+System keys require `--scope` and `--permission` flags:
+
+```bash
+# Single scope, read-only (e.g., for CI to fetch secrets)
 kfl keys create --type system \
   --label "github-actions-prod" \
   --scope "my-api:production" \
   --permission read
 
-# Create a system key with multiple scopes
+# Multiple scopes (repeat --scope for each)
 kfl keys create --type system \
-  --label "deployer" \
+  --label "staging-deployer" \
   --scope "my-api:staging" \
   --scope "frontend:staging" \
+  --scope "worker:staging" \
   --permission readwrite
 
-# Create a system key with wildcard environment
+# Wildcard environment (access to ALL environments in a project)
 kfl keys create --type system \
   --label "local-dev" \
   --scope "my-api:*" \
   --permission readwrite
 
-# Revoke a key
-kfl keys revoke <prefix>
+# Multiple projects with wildcards
+kfl keys create --type system \
+  --label "full-dev-access" \
+  --scope "my-api:*" \
+  --scope "frontend:*" \
+  --permission readwrite
 ```
 
-**List output example:**
+> **Note for Zsh users:** The `*` wildcard must be quoted to prevent shell glob expansion:
+> ```bash
+> # Wrong (Zsh will try to expand * as a glob pattern)
+> kfl keys create --type system --label "dev" --scope my-api:* --permission read
+> # zsh: no matches found: my-api:*
+>
+> # Correct (quote the scope)
+> kfl keys create --type system --label "dev" --scope "my-api:*" --permission read
+> ```
+
+#### `kfl keys create` Flags
+
+| Flag | Required For | Description |
+|------|--------------|-------------|
+| `--type <type>` | All | `user` or `system` |
+| `--label <label>` | All | Human-readable label for the key |
+| `--scope <project:env>` | System only | Scope for system keys. Repeatable. Use `*` for env wildcard. |
+| `--permission <perm>` | System only | `read` or `readwrite` |
+
+#### List Output Example
+
 ```
 PREFIX          TYPE    LABEL              PERMISSION  SCOPES               CREATED
 kfl_user_a1b2   user    bootstrap          full        *                    2024-01-15

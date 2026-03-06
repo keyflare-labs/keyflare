@@ -112,13 +112,30 @@ kfl keys create --type system \
   --permission readwrite
 # Output: kfl_sys_d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9
 
-# Create a key with multiple scopes
+# Create a key with multiple scopes (repeat --scope for each)
 kfl keys create --type system \
   --label "staging-deployer" \
   --scope "my-api:staging" \
   --scope "frontend:staging" \
+  --scope "worker:staging" \
+  --permission readwrite
+
+# Multiple projects with wildcard environments
+kfl keys create --type system \
+  --label "full-dev-access" \
+  --scope "my-api:*" \
+  --scope "frontend:*" \
   --permission readwrite
 ```
+
+> **Note for Zsh users:** The `*` wildcard must be quoted to prevent shell glob expansion:
+> ```bash
+> # Wrong (Zsh will error: "no matches found: my-api:*")
+> kfl keys create --type system --label "dev" --scope my-api:* --permission read
+>
+> # Correct (quote the scope)
+> kfl keys create --type system --label "dev" --scope "my-api:*" --permission read
+> ```
 
 ### Listing Keys
 
