@@ -99,7 +99,7 @@ echo "SAVE THIS: $MASTER_KEY"
 echo "$MASTER_KEY" | npx wrangler secret put MASTER_KEY
 
 # 6. Apply migrations
-npm run db:migrate:remote
+pnpm --filter @keyflare/server db:migrate:remote
 
 # 7. Bootstrap
 curl -X POST https://keyflare.<account>.workers.dev/bootstrap
@@ -147,14 +147,13 @@ To update Keyflare to a new version:
 ```bash
 # Pull latest source
 git pull
-npm install
+pnpm run setup
 
 # If there are new migrations:
-cd packages/server
-npm run db:migrate:remote
+pnpm --filter @keyflare/server db:migrate:remote
 
 # Redeploy
-npx wrangler deploy
+pnpm --filter @keyflare/server deploy
 ```
 
 The MASTER_KEY and all data persist across redeployments.

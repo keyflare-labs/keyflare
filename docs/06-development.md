@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Node.js >= 20
-- npm >= 10
+- pnpm >= 9 — install via `npm install -g pnpm` or `corepack enable`
 - Wrangler CLI — installed locally as a dev dependency (no global install needed)
 
 A Cloudflare account is **only required for remote deployment**. Local development runs entirely offline via Miniflare.
@@ -15,9 +15,11 @@ A Cloudflare account is **only required for remote deployment**. Local developme
 git clone https://github.com/matthias-hausberger/keyflare.git
 cd keyflare
 
-# Install all dependencies (all workspaces)
-npm install
+# Install all dependencies and build the CLI (required once after cloning)
+pnpm run setup
 ```
+
+`pnpm run setup` runs `pnpm install` twice with a CLI build in between. This is necessary because pnpm links workspace bins during install — before any build scripts run — so `dist/index.js` must exist for the `kfl` bin to be linked correctly.
 
 ## Local Development (no Cloudflare account)
 
@@ -53,10 +55,10 @@ cp .dev.vars.example packages/server/.dev.vars
 
 # Apply migrations to local D1
 cd packages/server
-npm run db:migrate:local
+pnpm run db:migrate:local
 
 # Start the server
-npm run dev
+pnpm run dev
 # → http://localhost:8787
 
 # Bootstrap
@@ -122,14 +124,14 @@ cd packages/server
 # 1. Edit src/db/schema.ts
 
 # 2. Generate the new migration SQL
-npm run db:generate
+pnpm run db:generate
 # Creates migrations/XXXX_<name>.sql
 
 # 3a. Apply locally
-npm run db:migrate:local
+pnpm run db:migrate:local
 
 # 3b. Apply to production
-npm run db:migrate:remote
+pnpm run db:migrate:remote
 ```
 
 The generated migration files are committed to the repo and applied automatically in tests via `applyD1Migrations` from `cloudflare:test`.
@@ -144,10 +146,10 @@ Studio reads the SQLite file that `wrangler dev` creates under `.wrangler/state/
 
 ```bash
 # Terminal 1 — keep the dev server running (creates/maintains the SQLite file)
-npm run dev --workspace=packages/server
+pnpm --filter @keyflare/server dev
 
 # Terminal 2 — open Studio
-npm run db:studio --workspace=packages/server
+pnpm --filter @keyflare/server db:studio
 # → https://local.drizzle.studio (opens in browser, proxies to localhost:4983)
 ```
 
@@ -163,7 +165,7 @@ export CLOUDFLARE_ACCOUNT_ID=<your-account-id>
 export CLOUDFLARE_D1_DATABASE_ID=<database-id-from-kfl-init>
 export CLOUDFLARE_D1_TOKEN=<api-token-with-D1-edit-permissions>
 
-npm run db:studio:remote --workspace=packages/server
+pnpm --filter @keyflare/server db:studio:remote
 # → https://local.drizzle.studio
 ```
 
@@ -177,10 +179,10 @@ Tests run entirely inside a Miniflare Worker runtime — no network calls, no Cl
 
 ```bash
 # Run server tests (31 integration tests)
-npm test --workspace=packages/server
+pnpm --filter @keyflare/server test
 
 # Run via gob (recommended — streams output)
-cd packages/server && gob run npx vitest run
+gob run pnpm --filter @keyflare/server test
 ```
 
 ### Test isolation
@@ -205,21 +207,21 @@ New migrations are therefore picked up automatically — no test code changes ne
 
 ```bash
 # Build all packages
-npm run build
+pnpm run build
 
 # Build individual packages
-npm run build --workspace=packages/shared
-npm run build --workspace=packages/server   # type-check only (wrangler bundles at deploy)
-npm run build --workspace=packages/cli       # tsup → dist/index.js
+pnpm --filter @keyflare/shared build
+pnpm --filter @keyflare/server build   # type-check only (wrangler bundles at deploy)
+pnpm --filter @keyflare/cli build      # tsup → dist/index.js (with type declarations)
 ```
 
 ## Type Checking
 
 ```bash
-npm run typecheck --workspaces
+pnpm run typecheck
 # or individually:
-npm run typecheck --workspace=packages/server
-npm run typecheck --workspace=packages/cli
+pnpm --filter @keyflare/server typecheck
+pnpm --filter @keyflare/cli typecheck
 ```
 
 ## Debugging

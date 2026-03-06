@@ -17,7 +17,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply keyflare-db --remote"
   },
   "dependencies": {
-    "@keyflare/shared": "*",
+    "@keyflare/shared": "workspace:*",
     "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {

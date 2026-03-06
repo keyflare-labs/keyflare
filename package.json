@@ -3,19 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "description": "Open Source Secrets Manager built entirely on Cloudflare",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@10.17.1",
   "scripts": {
-    "dev": "npm run dev --workspace=packages/server",
-    "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces",
-    "typecheck": "npm run typecheck --workspaces",
+    "dev": "pnpm --filter @keyflare/server dev",
+    "setup": "pnpm install && pnpm --filter @keyflare/cli build:fast && pnpm install",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
     "kfl": "tsx packages/cli/src/index.ts"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   },
   "license": "MIT"
 }
