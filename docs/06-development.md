@@ -21,6 +21,16 @@ pnpm run setup
 
 `pnpm run setup` runs `pnpm install` twice with a CLI build in between. This is necessary because pnpm links workspace bins during install — before any build scripts run — so `dist/index.js` must exist for the `kfl` bin to be linked correctly.
 
+### Running the CLI during development
+
+Use `pnpm kfl` from the project root:
+
+```bash
+pnpm kfl init
+pnpm kfl projects list
+pnpm kfl secrets set --project myapp --config production KEY=value
+```
+
 ## Local Development (no Cloudflare account)
 
 The fastest way to get a local Keyflare instance running is `kfl dev`:
@@ -28,10 +38,10 @@ The fastest way to get a local Keyflare instance running is `kfl dev`:
 ```bash
 # One-time setup: generates a local MASTER_KEY, applies migrations,
 # bootstraps the DB, and saves credentials pointing at localhost:8787
-npx tsx packages/cli/src/index.ts dev init
+pnpm kfl dev init
 
 # Start the local server (separate terminal)
-npx tsx packages/cli/src/index.ts dev server
+pnpm kfl dev server
 # → Keyflare listening at http://localhost:8787
 
 # Point all kfl commands at the local server

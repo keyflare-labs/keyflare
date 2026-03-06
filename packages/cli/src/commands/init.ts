@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { input, select, confirm, password } from "@inquirer/prompts";
@@ -55,7 +55,6 @@ async function resolveCloudflareAuth(): Promise<{
     );
     const result = spawnSync("npx", ["wrangler", "login"], {
       stdio: "inherit",
-      shell: true,
     });
     if (result.status !== 0) {
       throw new Error("Cloudflare OAuth login failed");
@@ -80,7 +79,6 @@ function checkWranglerOAuthSession(): boolean {
     // wrangler whoami exits 0 if authenticated
     const result = spawnSync("npx", ["wrangler", "whoami"], {
       stdio: "pipe",
-      shell: true,
     });
     return result.status === 0;
   } catch {
@@ -95,7 +93,6 @@ function wrangler(
 ): string {
   const result = spawnSync("npx", ["wrangler", ...args], {
     stdio: ["inherit", "pipe", "pipe"],
-    shell: true,
     cwd,
     env: { ...process.env, ...authEnv },
   });
@@ -231,7 +228,6 @@ migrations_dir = "migrations"
       ["wrangler", "secret", "put", "MASTER_KEY"],
       {
         stdio: ["pipe", "pipe", "pipe"],
-        shell: true,
         cwd: serverDir,
         input: masterKey + "\n",
         env: { ...process.env, ...authEnv },

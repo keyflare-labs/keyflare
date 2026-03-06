@@ -68,7 +68,6 @@ function applyLocalMigrations() {
     ["wrangler", "d1", "migrations", "apply", "keyflare-db", "--local"],
     {
       stdio: ["pipe", "pipe", "pipe"],
-      shell: true,
       cwd: serverDir(),
       env: { ...process.env },
     }
@@ -97,7 +96,6 @@ export async function runDevServer(options: { port?: number } = {}) {
     ["wrangler", "dev", "--port", String(port)],
     {
       stdio: "inherit",
-      shell: true,
       cwd: serverDir(),
       env: { ...process.env },
     }
@@ -154,7 +152,6 @@ export async function runDevInit(options: { force?: boolean } = {}) {
     ["wrangler", "dev", "--port", String(port)],
     {
       stdio: "pipe",
-      shell: true,
       cwd: serverDir(),
       env: { ...process.env },
       detached: false,
