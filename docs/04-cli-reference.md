@@ -422,14 +422,55 @@ kfl_sys_c3d4    system  github-actions     read        my-api:production    2024
 kfl_sys_d4e5    system  deployer           readwrite   my-api:*, frontend:* 2024-01-17
 ```
 
-#### `kfl keys create` Flags
+#### `kfl keys put`
 
-| Flag | Required For | Description |
-|------|--------------|-------------|
-| `--type <type>` | All | `user` or `system` |
-| `--label <label>` | All | Human-readable label for the key |
-| `--scope <project:env>` | System only | Scope for system keys. Repeatable. Use `*` for env wildcard. |
-| `--permission <perm>` | System only | `read` or `readwrite` |
+Update the scopes and permission of an existing system key. **This replaces ALL existing scopes** with the new set.
+
+```bash
+kfl keys put <prefix> --scope <project:env> [--scope ...] --permission <read|readwrite>
+```
+
+Use `kfl keys list` to see the current scopes, then copy and modify them as needed.
+
+**Examples:**
+```bash
+# View current scopes
+$ kfl keys list
+PREFIX          TYPE    LABEL              PERMISSION  SCOPES               CREATED
+kfl_sys_c3d4    system  github-actions     read        my-api:production    2024-01-16
+
+# Add staging access (must include ALL scopes)
+$ kfl keys put kfl_sys_c3d4 \
+  --scope "my-api:production" \
+  --scope "my-api:staging" \
+  --permission read
+✓ Key "kfl_sys_c3d4" updated
+
+  Type:       system
+  Label:      github-actions
+  Permission: read
+  Scopes:     my-api:production, my-api:staging
+
+# Change from read-only to readwrite
+$ kfl keys put kfl_sys_c3d4 \
+  --scope "my-api:production" \
+  --scope "my-api:staging" \
+  --permission readwrite
+
+# Use wildcard to grant access to all environments
+$ kfl keys put kfl_sys_c3d4 \
+  --scope "my-api:*" \
+  --permission readwrite
+```
+
+> **Note:** User keys cannot have their scopes updated (they always have full access). Only system keys can be modified with `kfl keys put`.
+
+#### `kfl keys put` Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--scope <project:env>` | Yes | Scope: project:environment. Repeatable. Replaces ALL existing scopes. |
+| `--permission <perm>` | Yes | `read` or `readwrite` |
 
 **User key example:**
 ```bash

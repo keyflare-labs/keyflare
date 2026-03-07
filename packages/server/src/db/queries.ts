@@ -55,6 +55,31 @@ export async function revokeKeyByPrefix(
   return (result.meta?.changes ?? 0) > 0;
 }
 
+export async function getKeyByPrefix(
+  db: DrizzleD1Database,
+  prefix: string
+): Promise<ApiKeyRow | undefined> {
+  const rows = await db
+    .select()
+    .from(apiKeys)
+    .where(eq(apiKeys.keyPrefix, prefix))
+    .limit(1);
+  return rows[0];
+}
+
+export async function updateKeyScopes(
+  db: DrizzleD1Database,
+  prefix: string,
+  encryptedScopes: string,
+  permissions: "read" | "readwrite" | "full"
+): Promise<boolean> {
+  const result = await db
+    .update(apiKeys)
+    .set({ scopes: encryptedScopes, permissions })
+    .where(and(eq(apiKeys.keyPrefix, prefix), eq(apiKeys.revoked, 0)));
+  return (result.meta?.changes ?? 0) > 0;
+}
+
 export async function updateKeyLastUsed(
   db: DrizzleD1Database,
   keyId: string

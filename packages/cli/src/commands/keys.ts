@@ -2,6 +2,7 @@ import type {
   ListKeysResponse,
   CreateKeyResponse,
   RevokeKeyResponse,
+  UpdateKeyResponse,
   KeyType,
   Permission,
   KeyScope,
@@ -93,4 +94,34 @@ export async function runKeysCreate(opts: {
 export async function runKeysRevoke(prefix: string) {
   const data = await api.delete<RevokeKeyResponse>(`/keys/${prefix}`);
   success(`Key "${data.revoked}" revoked`);
+}
+
+export async function runKeysUpdate(prefix: string, opts: {
+  scope: string[];
+  permission: Permission;
+}) {
+  // Parse scopes
+  const scopes: KeyScope[] = opts.scope.map((s) => {
+    const [project, environment] = s.split(":");
+    if (!project || !environment) {
+      throw new Error(
+        `Invalid scope "${s}" — expected format: project:environment`
+      );
+    }
+    return { project, environment };
+  });
+
+  const body = {
+    scopes,
+    permission: opts.permission,
+  };
+
+  const data = await api.put<UpdateKeyResponse>(`/keys/${prefix}`, body);
+
+  const scopesStr = data.scopes.map((s) => `${s.project}:${s.environment}`).join(", ");
+  success(`Key "${prefix}" updated`);
+  console.log(`\n  Type:       ${data.type}`);
+  console.log(`  Label:      ${data.label}`);
+  console.log(`  Permission: ${data.permission}`);
+  console.log(`  Scopes:     ${scopesStr}\n`);
 }

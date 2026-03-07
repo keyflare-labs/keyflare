@@ -10,11 +10,13 @@ import type {
   ListKeysResponse,
   KeyInfo,
   RevokeKeyResponse,
+  UpdateKeyRequest,
+  UpdateKeyResponse,
 } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { sha256 } from "../crypto/hash.js";
 import { encrypt, decrypt } from "../crypto/encrypt.js";
-import { insertKey, listKeys, revokeKeyByPrefix } from "../db/queries.js";
+import { insertKey, listKeys, revokeKeyByPrefix, getKeyByPrefix, updateKeyScopes } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
 import { jsonOk, jsonError, parseJsonBody } from "../utils.js";
 
@@ -156,6 +158,81 @@ export async function handleRevokeKey(
   }
 
   return jsonOk<RevokeKeyResponse>({ revoked: prefix });
+}
+
+export async function handleUpdateKey(
+  request: Request,
+  db: DrizzleD1Database,
+  auth: AuthContext,
+  derivedKeys: DerivedKeys,
+  prefix: string
+): Promise<Response> {
+  if (!auth || auth.keyType !== "user") {
+    return jsonError("FORBIDDEN", "Only user keys can update API keys", 403);
+  }
+
+  // Fetch the existing key
+  const existingKey = await getKeyByPrefix(db, prefix);
+  if (!existingKey) {
+    return jsonError("NOT_FOUND", `Key with prefix "${prefix}" not found`, 404);
+  }
+  if (existingKey.revoked === 1) {
+    return jsonError("BAD_REQUEST", `Key "${prefix}" is revoked`, 400);
+  }
+  if (existingKey.type === "user") {
+    return jsonError(
+      "BAD_REQUEST",
+      "User keys cannot have their scopes updated (they have full access)",
+      400
+    );
+  }
+
+  const body = await parseJsonBody<UpdateKeyRequest>(request);
+  if (!body || !body.scopes || !body.permission) {
+    return jsonError(
+      "BAD_REQUEST",
+      "Missing required fields: scopes, permission",
+      400
+    );
+  }
+
+  if (!["read", "readwrite"].includes(body.permission)) {
+    return jsonError(
+      "BAD_REQUEST",
+      "Permission must be 'read' or 'readwrite'",
+      400
+    );
+  }
+
+  // Encrypt the new scopes
+  const encryptedScopes = await encrypt(
+    derivedKeys.encryptionKey,
+    JSON.stringify(body.scopes)
+  );
+
+  // Update the key
+  const updated = await updateKeyScopes(db, prefix, encryptedScopes, body.permission);
+  if (!updated) {
+    return jsonError("INTERNAL_ERROR", "Failed to update key", 500);
+  }
+
+  // Decrypt label for response
+  let label = "";
+  if (existingKey.label) {
+    try {
+      label = await decrypt(derivedKeys.encryptionKey, existingKey.label);
+    } catch {
+      label = "(decryption failed)";
+    }
+  }
+
+  return jsonOk<UpdateKeyResponse>({
+    prefix,
+    type: existingKey.type as "user" | "system",
+    label,
+    scopes: body.scopes,
+    permission: body.permission,
+  });
 }
 
 function generateRandomHex(length: number): string {

@@ -26,6 +26,7 @@ import {
   runKeysList,
   runKeysCreate,
   runKeysRevoke,
+  runKeysUpdate,
 } from "./commands/keys.js";
 import { readConfig } from "./config.js";
 import { error } from "./output/log.js";
@@ -278,6 +279,29 @@ keys
   .description("Revoke an API key by its prefix")
   .action(async (prefix: string) => {
     await runKeysRevoke(prefix).catch(handleError);
+  });
+
+keys
+  .command("put <prefix>")
+  .description(
+    "Update the scopes and permission of a system key.\n\n" +
+      "This replaces ALL existing scopes with the new set. Use `kfl keys list` to see current scopes.\n\n" +
+      "Examples:\n" +
+      "  kfl keys put kfl_sys_abc123 --scope my-api:production --permission read\n" +
+      "  kfl keys put kfl_sys_abc123 --scope my-api:* --scope frontend:* --permission readwrite"
+  )
+  .requiredOption(
+    "--scope <scope>",
+    "Scope: project:environment (repeatable). Replaces all existing scopes.",
+    collect,
+    []
+  )
+  .requiredOption(
+    "--permission <perm>",
+    "Permission: read or readwrite"
+  )
+  .action(async (prefix: string, opts) => {
+    await runKeysUpdate(prefix, opts).catch(handleError);
   });
 
 // ─── Helpers ─────────────────────────────────────────────────

@@ -157,6 +157,46 @@ Revoke an API key.
 
 ---
 
+### `PUT /keys/:prefix`
+
+Update the scopes and permission of a system key. **Replaces all existing scopes.**
+
+**Auth:** User key required
+
+**Request:**
+```json
+{
+  "scopes": [
+    { "project": "my-api", "environment": "production" },
+    { "project": "my-api", "environment": "staging" }
+  ],
+  "permission": "readwrite"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "prefix": "kfl_sys_b2c3",
+    "type": "system",
+    "label": "my-ci-key",
+    "scopes": [
+      { "project": "my-api", "environment": "production" },
+      { "project": "my-api", "environment": "staging" }
+    ],
+    "permission": "readwrite"
+  }
+}
+```
+
+**Errors:**
+- `400 BAD_REQUEST` — Key is a user key (cannot update scopes) or key is revoked
+- `404 NOT_FOUND` — Key prefix not found
+
+---
+
 ### `POST /projects`
 
 Create a new project.

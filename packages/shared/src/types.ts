@@ -80,6 +80,19 @@ export interface RevokeKeyResponse {
   revoked: string;
 }
 
+export interface UpdateKeyRequest {
+  scopes: KeyScope[];
+  permission: Permission;
+}
+
+export interface UpdateKeyResponse {
+  prefix: string;
+  type: KeyType;
+  label: string;
+  scopes: KeyScope[];
+  permission: string;
+}
+
 // ─── Projects ───
 
 export interface CreateProjectRequest {

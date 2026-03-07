@@ -637,6 +637,368 @@ describe("Keyflare API", () => {
       const res = await get("/keys", sysKey);
       expect(res.status).toBe(403);
     });
+
+    // ─── Update Key (PUT /keys/:prefix) ───
+    describe("PUT /keys/:prefix", () => {
+      it("updates scopes and permission for a system key", async () => {
+        // Create a system key
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "ci-key",
+            scopes: [{ project: "my-api", environment: "production" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const createJson = (await createRes.json()) as any;
+        const prefix = createJson.data.prefix;
+        const sysKey = createJson.data.key;
+
+        // Update the key
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [
+              { project: "my-api", environment: "production" },
+              { project: "my-api", environment: "staging" },
+            ],
+            permission: "readwrite",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(200);
+        const updateJson = (await updateRes.json()) as any;
+        expect(updateJson.ok).toBe(true);
+        expect(updateJson.data.prefix).toBe(prefix);
+        expect(updateJson.data.type).toBe("system");
+        expect(updateJson.data.label).toBe("ci-key");
+        expect(updateJson.data.permission).toBe("readwrite");
+        expect(updateJson.data.scopes).toHaveLength(2);
+        expect(updateJson.data.scopes[0]).toEqual({
+          project: "my-api",
+          environment: "production",
+        });
+        expect(updateJson.data.scopes[1]).toEqual({
+          project: "my-api",
+          environment: "staging",
+        });
+      });
+
+      it("replaces all existing scopes (not merge)", async () => {
+        // Create with two scopes
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "replace-test",
+            scopes: [
+              { project: "project-a", environment: "production" },
+              { project: "project-b", environment: "staging" },
+            ],
+            permission: "read",
+          },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+
+        // Update with completely different scopes
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [{ project: "project-c", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(200);
+        const updateJson = (await updateRes.json()) as any;
+        expect(updateJson.data.scopes).toHaveLength(1);
+        expect(updateJson.data.scopes[0]).toEqual({
+          project: "project-c",
+          environment: "*",
+        });
+      });
+
+      it("returns 400 when trying to update a user key", async () => {
+        // Create a second user key
+        const createRes = await post(
+          "/keys",
+          { type: "user", label: "second-user" },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+
+        // Try to update it
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(400);
+        const json = (await updateRes.json()) as any;
+        expect(json.ok).toBe(false);
+        expect(json.error.code).toBe("BAD_REQUEST");
+        expect(json.error.message).toContain("User keys cannot have their scopes updated");
+      });
+
+      it("returns 400 when trying to update a revoked key", async () => {
+        // Create and revoke a system key
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "to-revoke",
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+        await del(`/keys/${prefix}`, userKey);
+
+        // Try to update the revoked key
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [{ project: "y", environment: "*" }],
+            permission: "readwrite",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(400);
+        const json = (await updateRes.json()) as any;
+        expect(json.ok).toBe(false);
+        expect(json.error.message).toContain("revoked");
+      });
+
+      it("returns 404 for non-existent key prefix", async () => {
+        const updateRes = await put(
+          "/keys/kfl_sys_nope",
+          {
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(404);
+        const json = (await updateRes.json()) as any;
+        expect(json.ok).toBe(false);
+        expect(json.error.code).toBe("NOT_FOUND");
+      });
+
+      it("returns 400 when scopes are missing", async () => {
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "no-scopes",
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          { permission: "readwrite" },
+          userKey
+        );
+        expect(updateRes.status).toBe(400);
+        const json = (await updateRes.json()) as any;
+        expect(json.error.message).toContain("Missing required fields");
+      });
+
+      it("returns 400 when permission is missing", async () => {
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "no-perm",
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          { scopes: [{ project: "y", environment: "*" }] },
+          userKey
+        );
+        expect(updateRes.status).toBe(400);
+        const json = (await updateRes.json()) as any;
+        expect(json.error.message).toContain("Missing required fields");
+      });
+
+      it("returns 400 for invalid permission value", async () => {
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "bad-perm",
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const prefix = ((await createRes.json()) as any).data.prefix;
+
+        const updateRes = await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [{ project: "y", environment: "*" }],
+            permission: "invalid",
+          },
+          userKey
+        );
+        expect(updateRes.status).toBe(400);
+        const json = (await updateRes.json()) as any;
+        expect(json.error.message).toContain("Permission must be 'read' or 'readwrite'");
+      });
+
+      it("returns 403 when called with a system key", async () => {
+        // Create a system key
+        const sysKeyRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "updater",
+            scopes: [{ project: "x", environment: "*" }],
+            permission: "readwrite",
+          },
+          userKey
+        );
+        const sysKey = ((await sysKeyRes.json()) as any).data.key;
+
+        // Try to update using the system key (should fail)
+        const updateRes = await put(
+          `/keys/kfl_sys_something`,
+          {
+            scopes: [{ project: "y", environment: "*" }],
+            permission: "read",
+          },
+          sysKey
+        );
+        expect(updateRes.status).toBe(403);
+        const json = (await updateRes.json()) as any;
+        expect(json.error.code).toBe("FORBIDDEN");
+      });
+
+      it("updated permission takes effect immediately", async () => {
+        // Setup project + config
+        await post("/projects", { name: "test-proj" }, userKey);
+        await post(
+          "/projects/test-proj/configs",
+          { name: "production" },
+          userKey
+        );
+
+        // Create read-only system key
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "perm-test",
+            scopes: [{ project: "test-proj", environment: "production" }],
+            permission: "read",
+          },
+          userKey
+        );
+        const createJson = (await createRes.json()) as any;
+        const prefix = createJson.data.prefix;
+        const sysKey = createJson.data.key;
+
+        // Verify it can read but not write
+        const readRes = await get(
+          "/projects/test-proj/configs/production/secrets",
+          sysKey
+        );
+        expect(readRes.status).toBe(200);
+
+        const writeRes = await put(
+          "/projects/test-proj/configs/production/secrets",
+          { secrets: { TEST: "value" } },
+          sysKey
+        );
+        expect(writeRes.status).toBe(403);
+
+        // Update to readwrite
+        await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [{ project: "test-proj", environment: "production" }],
+            permission: "readwrite",
+          },
+          userKey
+        );
+
+        // Now writing should work
+        const writeRes2 = await put(
+          "/projects/test-proj/configs/production/secrets",
+          { secrets: { TEST: "value" } },
+          sysKey
+        );
+        expect(writeRes2.status).toBe(200);
+      });
+
+      it("updated scopes take effect immediately", async () => {
+        // Setup two projects
+        await post("/projects", { name: "project-a" }, userKey);
+        await post("/projects/project-a/configs", { name: "prod" }, userKey);
+        await post("/projects", { name: "project-b" }, userKey);
+        await post("/projects/project-b/configs", { name: "prod" }, userKey);
+
+        // Create key scoped to project-a only
+        const createRes = await post(
+          "/keys",
+          {
+            type: "system",
+            label: "scope-test",
+            scopes: [{ project: "project-a", environment: "prod" }],
+            permission: "readwrite",
+          },
+          userKey
+        );
+        const createJson = (await createRes.json()) as any;
+        const prefix = createJson.data.prefix;
+        const sysKey = createJson.data.key;
+
+        // Can access project-a
+        const aRes = await get("/projects/project-a/configs/prod/secrets", sysKey);
+        expect(aRes.status).toBe(200);
+
+        // Cannot access project-b
+        const bRes = await get("/projects/project-b/configs/prod/secrets", sysKey);
+        expect(bRes.status).toBe(403);
+
+        // Update to include project-b
+        await put(
+          `/keys/${prefix}`,
+          {
+            scopes: [
+              { project: "project-a", environment: "prod" },
+              { project: "project-b", environment: "prod" },
+            ],
+            permission: "readwrite",
+          },
+          userKey
+        );
+
+        // Now can access both
+        const aRes2 = await get("/projects/project-a/configs/prod/secrets", sysKey);
+        expect(aRes2.status).toBe(200);
+
+        const bRes2 = await get("/projects/project-b/configs/prod/secrets", sysKey);
+        expect(bRes2.status).toBe(200);
+      });
+    });
   });
 
   // ─── End-to-end flow ───

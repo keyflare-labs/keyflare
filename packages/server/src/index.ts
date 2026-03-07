@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { deriveMasterKeys } from "./crypto/keys.js";
 import { authenticate } from "./middleware/auth.js";
 import { handleBootstrap } from "./routes/bootstrap.js";
-import { handleCreateKey, handleListKeys, handleRevokeKey } from "./routes/keys.js";
+import { handleCreateKey, handleListKeys, handleRevokeKey, handleUpdateKey } from "./routes/keys.js";
 import {
   handleCreateProject,
   handleListProjects,
@@ -67,6 +67,10 @@ export default {
       const revokeMatch = path.match(/^\/keys\/([^/]+)$/);
       if (revokeMatch && method === "DELETE") {
         return handleRevokeKey(request, db, auth, revokeMatch[1]);
+      }
+      // PUT /keys/:prefix
+      if (revokeMatch && method === "PUT") {
+        return handleUpdateKey(request, db, auth, derivedKeys, revokeMatch[1]);
       }
 
       // ─── Projects ───
