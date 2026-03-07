@@ -30,7 +30,7 @@
     "better-sqlite3": "^12.6.2",
     "drizzle-kit": "^0.31.9",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0",
+    "vitest": "~3.2.0",
     "wrangler": "^3.0.0"
   }
 }

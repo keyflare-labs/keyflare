@@ -23,6 +23,7 @@ export default defineWorkersConfig(async () => {
             d1Persist: TEST_WRANGLER_DIR,
             bindings: {
               TEST_MIGRATIONS: migrations,
+              MASTER_KEY: "keyflare-test-master-key-not-for-production",
             },
           },
         },
