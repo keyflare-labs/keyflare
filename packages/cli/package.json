@@ -27,7 +27,6 @@
     "ora": "^9.3.0"
   },
   "devDependencies": {
-    "@keyflare/server": "workspace:*",
     "@keyflare/shared": "workspace:*",
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",

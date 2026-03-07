@@ -1,6 +1,5 @@
 import type { ApiResponse, ApiErrorResponse } from "@keyflare/shared";
 import { hc } from "hono/client";
-import type { AppType } from "@keyflare/server";
 import { getApiUrl, readApiKey } from "../config.js";
 
 export class KeyflareApiError extends Error {
@@ -58,7 +57,7 @@ interface KeyflareRpcClient {
 
 function client(apiKey?: string): KeyflareRpcClient {
   const key = apiKey ?? readApiKey();
-  return hc<AppType>(baseUrl(), {
+  return hc(baseUrl(), {
     headers: key ? { Authorization: `Bearer ${key}` } : {},
   }) as unknown as KeyflareRpcClient;
 }

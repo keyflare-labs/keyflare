@@ -40,9 +40,6 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
     devDependencies:
-      '@keyflare/server':
-        specifier: workspace:*
-        version: link:../server
       '@keyflare/shared':
         specifier: workspace:*
         version: link:../shared
