@@ -215,6 +215,12 @@ This means:
 
 New migrations are therefore picked up automatically — no test code changes needed when the schema changes.
 
+## CI
+
+GitHub Actions runs on every push to `main` and on pull requests. The workflow (`.github/workflows/ci.yml`) triggers only when relevant paths change: `.github/workflows/ci.yml`, `.nvmrc`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, or anything under `packages/`.
+
+Steps run in order: **install** (frozen lockfile) → **build** → **typecheck** → **lint** → **test**. Node is set from `.nvmrc` (24); pnpm is cached.
+
 ## Building
 
 ```bash
