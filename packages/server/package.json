@@ -16,7 +16,8 @@
     "db:studio": "drizzle-kit studio --port 4983",
     "db:studio:remote": "DRIZZLE_REMOTE=true drizzle-kit studio --port 4983",
     "db:migrate:local": "wrangler d1 migrations apply keyflare-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply keyflare-db --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply keyflare-db --remote",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@keyflare/shared": "workspace:*",
@@ -25,12 +26,12 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.12.19",
-    "@cloudflare/workers-types": "^4.0.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.0.0",
     "better-sqlite3": "^12.6.2",
     "drizzle-kit": "^0.31.9",
     "typescript": "^5.5.0",
     "vitest": "~3.2.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.71.0"
   }
 }

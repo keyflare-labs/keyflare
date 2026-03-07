@@ -158,10 +158,11 @@ Studio reads the SQLite file that `wrangler dev` creates under `.wrangler/state/
 
 ```bash
 # Terminal 1 — keep the dev server running (creates/maintains the SQLite file)
-pnpm --filter @keyflare/server dev
+pnpm run dev
 
-# Terminal 2 — open Studio
-pnpm --filter @keyflare/server db:studio
+# Terminal 2 — open Studio (from repo root)
+pnpm run studio
+# Or: pnpm --filter @keyflare/server db:studio
 # → https://local.drizzle.studio (opens in browser, proxies to localhost:4983)
 ```
 
@@ -202,11 +203,13 @@ gob run pnpm --filter @keyflare/server test
 ### Test isolation
 
 Each test run:
+
 1. Creates a unique temp directory at `os.tmpdir()/keyflare-test-<pid>` (via `test/global-setup.ts`)
 2. Directs Miniflare's D1 storage there via `d1Persist` in `vitest.config.ts`
 3. Deletes the temp directory in a teardown hook after all tests finish
 
 This means:
+
 - Tests never pollute the real local dev `.wrangler/state/`
 - Multiple test runs in parallel don't collide
 - Zero artefacts left after the suite
@@ -237,9 +240,21 @@ pnpm --filter @keyflare/cli build      # tsup → dist/index.js (with type decla
 
 ## Type Checking
 
+Type definitions for the Worker environment (bindings, runtime APIs) are generated from `wrangler.toml` via `wrangler types`. The output is committed as `packages/server/worker-configuration.d.ts`.
+
+```bash
+# Regenerate after changing packages/server/wrangler.json
+pnpm --filter @keyflare/server cf-typegen
+```
+
+CI runs `wrangler types --check` to ensure the committed types file is up to date.
+
 ```bash
 pnpm run typecheck
-# or individually:
+# or (alias):
+pnpm run types
+
+# Or individually:
 pnpm --filter @keyflare/server typecheck
 pnpm --filter @keyflare/cli typecheck
 ```

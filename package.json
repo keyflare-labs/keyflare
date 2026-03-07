@@ -6,11 +6,13 @@
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "dev": "pnpm --filter @keyflare/server dev",
+    "studio": "pnpm --filter @keyflare/server db:studio",
     "setup": "pnpm install && pnpm --filter @keyflare/cli build:fast",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
+    "types": "pnpm --filter @keyflare/server cf-typegen",
     "kfl": "tsx packages/cli/src/index.ts"
   },
   "engines": {
