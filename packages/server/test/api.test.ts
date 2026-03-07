@@ -724,7 +724,7 @@ describe("Keyflare API", () => {
         );
         const createJson = (await createRes.json()) as any;
         const prefix = createJson.data.prefix;
-        const sysKey = createJson.data.key;
+        const _sysKey = createJson.data.key;
 
         // Update the key
         const updateRes = await put(
@@ -1181,7 +1181,7 @@ describe("Keyflare API", () => {
   // ─── 404 ───
   describe("404 handling", () => {
     it("returns 404 for unknown routes", async () => {
-      const res = await get("/nonexistent");
+      const _res = await get("/nonexistent");
       // This will be 401 first because auth is required; let's use a key
       const bootstrapRes = await post("/bootstrap");
       const key = ((await bootstrapRes.json()) as any).data.key;

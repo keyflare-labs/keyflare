@@ -8,7 +8,7 @@ import type {
   KeyScope,
 } from "@keyflare/shared";
 import { api } from "../api/client.js";
-import { success, error, dim, bold } from "../output/log.js";
+import { success, dim, bold } from "../output/log.js";
 
 export async function runKeysList() {
   const data = await api.get<ListKeysResponse>("/keys");

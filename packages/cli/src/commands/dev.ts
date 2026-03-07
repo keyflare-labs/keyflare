@@ -13,13 +13,12 @@
 
 import { spawnSync, spawn } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import ora from "ora";
 import type { BootstrapResponse } from "@keyflare/shared";
 import { api, KeyflareApiError } from "../api/client.js";
 import { writeConfig, writeApiKey } from "../config.js";
-import { log, success, warn, error, bold, dim } from "../output/log.js";
+import { log, warn, bold, dim } from "../output/log.js";
 
 const LOCAL_API_URL = "http://localhost:8787";
 
@@ -129,7 +128,7 @@ export async function runDevInit(options: { force?: boolean } = {}) {
 
   // ── Step 1: .dev.vars
   const devVarsSpinner = ora("Setting up local master key...").start();
-  const masterKey = ensureDevVars(options.force);
+  ensureDevVars(options.force);
   devVarsSpinner.succeed(
     `Local master key ready ${dim("(packages/server/.dev.vars)")}`
   );

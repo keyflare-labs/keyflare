@@ -24,6 +24,6 @@
     "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "oxlint": "^0.18.0"
+    "oxlint": "^1.51.0"
   }
 }

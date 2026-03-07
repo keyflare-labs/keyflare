@@ -2,7 +2,7 @@ import { input, password } from "@inquirer/prompts";
 import ora from "ora";
 import { api, KeyflareApiError } from "../api/client.js";
 import { writeConfig, writeApiKey, getApiUrl, readApiKey } from "../config.js";
-import { log, success, error, bold, dim } from "../output/log.js";
+import { log, error, bold, dim } from "../output/log.js";
 
 export async function runLogin() {
   log(bold("\n🔑 Keyflare Login\n"));

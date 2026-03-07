@@ -34,7 +34,7 @@ const app = new Hono<AppEnv>();
 app.use("*", loggerMiddleware());
 
 // ─── Health (no middleware) ───
-app.get("/health", (c) =>
+app.get("/health", (_c) =>
   jsonOk<HealthResponse>({ ok: true, version: VERSION })
 );
 

@@ -1,7 +1,7 @@
 import "hono";
 import { createMiddleware } from "hono/factory";
 import type { MiddlewareHandler } from "hono/types";
-import { createLogger, type Logger } from "@keyflare/shared";
+import { createLogger } from "@keyflare/shared";
 
 /**
  * @module
