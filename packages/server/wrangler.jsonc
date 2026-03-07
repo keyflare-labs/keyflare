@@ -1,8 +1,14 @@
 {
   "name": "keyflare",
   "main": "src/index.ts",
-  "compatibility_date": "2024-12-01",
+  "compatibility_date": "2026-03-07",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true
+    }
+  },
   // D1 database binding
   "d1_databases": [
     {

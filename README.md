@@ -4,9 +4,11 @@
 
 One Worker. One D1 database. One master key. Zero trust storage.
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/keyflare/keyflare)
+
 ---
 
-## What is Keyflare?
+## What is Keyflare? 🔥
 
 Keyflare is a self-hosted secrets manager (like [Doppler](https://doppler.com) or [Infisical](https://infisical.com)) that runs entirely on Cloudflare's infrastructure — a single Worker + a single D1 database. All secrets are encrypted at rest with AES-256-GCM.
 
@@ -20,7 +22,7 @@ Keyflare is a self-hosted secrets manager (like [Doppler](https://doppler.com) o
 - **📄 Multi-format export** — Download as `.env`, JSON, YAML, or shell exports.
 - **🚀 CLI-first** — Everything managed via the `kfl` command-line tool.
 
-## Quick Start
+## Getting started 🚀
 
 ```bash
 # Install the CLI
@@ -42,6 +44,14 @@ kfl run --project my-api --config production -- npm run build
 # Download secrets as .env file
 kfl download --project my-api --config production --output .env
 ```
+
+## Deploy to Cloudflare ☁️ (self-hosted)
+
+You can deploy Keyflare to your own Cloudflare account in one click using the [Deploy to Cloudflare](https://developers.cloudflare.com/workers/platform/deploy-buttons/) button. Cloudflare will clone this repo, provision the D1 database, and deploy the Worker.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/keyflare/keyflare)
+
+After deploying, use the CLI (`kfl init` with your Worker URL) or follow [Deployment](./docs/07-deployment.md) to configure the master key and API keys.
 
 ## Architecture
 
