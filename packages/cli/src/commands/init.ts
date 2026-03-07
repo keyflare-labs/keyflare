@@ -23,6 +23,44 @@ interface WorkerVersionInfo {
   };
 }
 
+/**
+ * Master key format: base64-encoded 256-bit (32-byte) key.
+ * When decoded from base64, it must be exactly 32 bytes.
+ *
+ * Example: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+ */
+const MASTER_KEY_REGEX = /^[A-Za-z0-9+/]{43}={0,2}$/;
+
+function validateMasterKey(key: string): { valid: boolean; error?: string } {
+  if (!key || typeof key !== "string") {
+    return { valid: false, error: "Master key is required" };
+  }
+
+  // Check base64 format (43-45 chars for 32 bytes)
+  if (!MASTER_KEY_REGEX.test(key.trim())) {
+    return {
+      valid: false,
+      error:
+        "Master key must be a base64-encoded 256-bit key (44 chars, e.g., K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=)",
+    };
+  }
+
+  // Verify it decodes to exactly 32 bytes
+  try {
+    const decoded = Buffer.from(key.trim(), "base64");
+    if (decoded.length !== 32) {
+      return {
+        valid: false,
+        error: `Master key must decode to 32 bytes, got ${decoded.length} bytes`,
+      };
+    }
+  } catch {
+    return { valid: false, error: "Master key is not valid base64" };
+  }
+
+  return { valid: true };
+}
+
 // ─── Auth helpers ─────────────────────────────────────────────
 
 /**
@@ -194,8 +232,20 @@ function findKeyflareDbId(authEnv: Record<string, string>): string | undefined {
 
 // ─── kfl init (remote deploy) ─────────────────────────────────
 
-export async function runInit(options: { force?: boolean }) {
+export async function runInit(options: { force?: boolean; masterKey?: string }) {
   log(bold("\n🔥 Keyflare — Initial Setup\n"));
+
+  // Validate custom master key if provided
+  let customMasterKey: string | undefined;
+  if (options.masterKey) {
+    const validation = validateMasterKey(options.masterKey);
+    if (!validation.valid) {
+      error(`Invalid master key: ${validation.error}`);
+      process.exit(1);
+    }
+    customMasterKey = options.masterKey.trim();
+    log(dim("Using custom master key provided via --masterkey flag\n"));
+  }
 
   // ── Step 1: Cloudflare auth
   const spinner = ora("Checking Cloudflare authentication...").start();
@@ -265,6 +315,14 @@ export async function runInit(options: { force?: boolean }) {
     // ── UPDATE FLOW ────────────────────────────────────────────
     log("");
     log(bold("Updating existing Keyflare deployment...\n"));
+
+    // Warn if user provided --masterkey during update (it will be ignored)
+    if (customMasterKey) {
+      warn(
+        "Note: --masterkey is ignored during updates. The existing master key will be preserved."
+      );
+      log("");
+    }
 
     // Patch wrangler.toml with the existing database ID
     const serverDir = path.resolve(
@@ -392,13 +450,17 @@ migrations_dir = "migrations"
   fs.writeFileSync(wranglerTomlPath, tomlContent, "utf8");
   success("Updated wrangler.toml with D1 database binding");
 
-  // ── Step 5: Generate master key
-  const masterKey = generateMasterKey();
-  warn(
-    `\n⚠️  MASTER KEY — Save this somewhere safe. It cannot be recovered!\n`
-  );
-  log(bold(`  ${masterKey}\n`));
-  await confirm({ message: "I have saved the master key", default: false });
+  // ── Step 5: Generate or use master key
+  const masterKey = customMasterKey ?? generateMasterKey();
+
+  // Show master key and require confirmation (only if auto-generated)
+  if (!customMasterKey) {
+    warn(
+      `\n⚠️  MASTER KEY — Save this somewhere safe. It cannot be recovered!\n`
+    );
+    log(bold(`  ${masterKey}\n`));
+    await confirm({ message: "I have saved the master key", default: false });
+  }
 
   // ── Step 6: Deploy Worker
   const deploySpinner = ora("Deploying Keyflare Worker...").start();
@@ -484,6 +546,18 @@ migrations_dir = "migrations"
   log(
     `\n${bold("✓ Setup complete!")}\n\nYour root API key ${dim("(shown once — already saved to ~/.config/keyflare/)")}: \n\n  ${bold(rootKey)}\n`
   );
+
+  // Show master key one more time at the end (for fresh installs)
+  warn(bold("⚠️  IMPORTANT: Your master key (save this securely!)\n"));
+  log(`  ${bold(masterKey)}\n`);
+  log(
+    dim(
+      "This key is shown ONCE. Store it safely — if lost, all encrypted data\n" +
+        "in D1 becomes permanently unrecoverable. If compromised, re-encrypt\n" +
+        "everything with a new key.\n"
+    )
+  );
+
   log(dim(`API URL: ${apiUrl}`));
   log(dim(`Config:  ~/.config/keyflare/\n`));
 }

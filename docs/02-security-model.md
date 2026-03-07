@@ -180,6 +180,22 @@ System keys carry an encrypted `scopes` field:
 
 ## Master Key Management
 
+### Key Format
+
+The master key must be a **base64-encoded 256-bit (32-byte) key**:
+
+| Property | Requirement |
+|----------|-------------|
+| Encoding | Standard base64 (RFC 4648) |
+| Length | 44 characters (with optional `=` padding) |
+| Decoded size | Exactly 32 bytes |
+| Entropy | 256 bits |
+
+**Example:**
+```
+K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+```
+
 ### Generation
 
 ```bash
@@ -188,12 +204,70 @@ openssl rand -base64 32
 # Example output: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
 ```
 
+Or let `kfl init` generate one for you automatically.
+
+### Using a Custom Master Key
+
+You can provide your own master key via the `--masterkey` flag:
+
+```bash
+# Generate a key and store it securely first
+openssl rand -base64 32 > /secure/vault/keyflare-master.key
+
+# Use during initialization
+kfl init --masterkey "$(cat /secure/vault/keyflare-master.key)"
+```
+
+This is useful for:
+- Compliance requirements (key custody)
+- Disaster recovery planning
+- Multi-region deployments with the same key
+
+> **Note:** The `--masterkey` flag is **ignored during updates** (`kfl init` on an existing deployment). This prevents accidental key rotation that would make all encrypted data unreadable.
+
 ### Deployment to Cloudflare
 
 ```bash
 # Set as Worker secret (never stored in code or config files)
 echo "<base64-key>" | wrangler secret put MASTER_KEY
 ```
+
+### Key Visibility
+
+The master key is shown **only once** during `kfl init` for fresh installations:
+
+1. **First display** — After the D1 database is created, before the worker is deployed
+2. **Confirmation prompt** — User must confirm they saved the key
+3. **Final reminder** — At the end of setup, the key is shown one more time with a warning
+
+```
+⚠️  IMPORTANT: Your master key (save this securely!)
+
+  K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+
+This key is shown ONCE. Store it safely — if lost, all encrypted data
+in D1 becomes permanently unrecoverable. If compromised, re-encrypt
+everything with a new key.
+```
+
+If you provide `--masterkey`, the confirmation prompt is skipped (you already have the key).
+
+### Update Behavior
+
+When running `kfl init` on an existing deployment:
+
+- **The master key is NEVER changed** — even if `--masterkey` is provided
+- A warning is displayed if `--masterkey` was specified
+- This prevents catastrophic data loss from accidental key rotation
+
+### Recovery Scenario
+
+If you saved the master key during setup, you can recover from:
+- **Worker deletion** — Re-deploy and set the same master key via `wrangler secret put MASTER_KEY`
+- **Account migration** — Deploy to a new account with the same master key
+- **D1 database migration** — Attach the D1 database to a new worker and set the same master key
+
+**Without the master key, all encrypted data is permanently lost.** There is no backdoor or recovery mechanism.
 
 ### Local Development
 

@@ -22,8 +22,15 @@
 Bootstrap a new Keyflare deployment on your Cloudflare account, or update an existing deployment.
 
 ```bash
-kfl init [--force]
+kfl init [--force] [--masterkey <key>]
 ```
+
+**Options:**
+
+| Flag | Description |
+|------|-------------|
+| `--force` | Re-run even if already initialised |
+| `--masterkey <key>` | Custom master key (base64-encoded 256-bit). See [Master Key Format](#master-key-format) below. |
 
 **Authentication options** — prompted interactively on first run:
 
@@ -34,6 +41,30 @@ kfl init [--force]
 
 If `CLOUDFLARE_API_TOKEN` is already set in the environment, it is used silently without prompting.
 
+#### Master Key Format
+
+The master key is a **base64-encoded 256-bit (32-byte) key**. It must:
+
+- Be exactly 44 characters when base64-encoded
+- Decode to exactly 32 bytes
+- Use standard base64 encoding (A-Z, a-z, 0-9, +, /)
+
+**Example valid key:**
+```
+K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+```
+
+**Generate your own:**
+```bash
+# Using openssl
+openssl rand -base64 32
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+> **Important:** The `--masterkey` flag is **ignored during updates**. When updating an existing deployment, the master key is always preserved to prevent data loss.
+
 #### Fresh Install Flow
 
 When no Keyflare deployment exists:
@@ -42,12 +73,13 @@ When no Keyflare deployment exists:
 2. Verifies credentials (`wrangler whoami`)
 3. Creates D1 database `keyflare-db` (or finds it if already exists)
 4. Patches `packages/server/wrangler.toml` with the real `database_id`
-5. Generates 256-bit `MASTER_KEY` — displayed once, requires confirmation it's been saved
+5. Generates 256-bit `MASTER_KEY` (or uses the one from `--masterkey`)
 6. Deploys the Worker via `wrangler deploy`
 7. Pushes `MASTER_KEY` as a Worker secret
 8. Applies Drizzle migrations (`wrangler d1 migrations apply --remote`)
 9. Calls `POST /bootstrap` to create the first root user key
 10. Saves API URL and root key to `~/.config/keyflare/`
+11. **Displays the master key one final time** — this is your only chance to save it!
 
 #### Update Flow
 
@@ -62,8 +94,10 @@ When a Keyflare deployment already exists, `kfl init` detects it and prompts:
 ? Do you want to UPDATE the existing deployment? (y/N)
 ```
 
-- **Yes** — Deploys the new worker version and runs any pending database migrations. Your MASTER_KEY and all data are preserved.
+- **Yes** — Deploys the new worker version and runs any pending database migrations. **Your MASTER_KEY and all data are preserved.** The `--masterkey` flag is ignored.
 - **No** — Aborts with instructions to either delete the existing worker (`wrangler delete keyflare`) or use a different Cloudflare account.
+
+> **Critical:** During updates, the existing master key is **never overridden**. This prevents data loss — overriding the master key would make all existing encrypted data permanently unrecoverable.
 
 ```
 $ kfl init
@@ -91,9 +125,38 @@ $ kfl init
 
 ✓ Setup complete!
 
-Your root API key (already saved to ~/.config/keyflare/):
+Your root API key (shown once — already saved to ~/.config/keyflare/):
 
   kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+
+⚠️  IMPORTANT: Your master key (save this securely!)
+
+  K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+
+This key is shown ONCE. Store it safely — if lost, all encrypted data
+in D1 becomes permanently unrecoverable. If compromised, re-encrypt
+everything with a new key.
+
+API URL: https://keyflare.my-account.workers.dev
+Config:  ~/.config/keyflare/
+```
+
+#### Using a Custom Master Key
+
+Bring your own master key for compliance or backup purposes:
+
+```bash
+# Generate and store the key in your password manager first
+$ MY_KEY=$(openssl rand -base64 32)
+
+# Use during init
+$ kfl init --masterkey "$MY_KEY"
+
+🔥 Keyflare — Initial Setup
+
+Using custom master key provided via --masterkey flag
+
+? How would you like to authenticate with Cloudflare? ...
 ```
 
 ---

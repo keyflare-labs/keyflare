@@ -48,6 +48,11 @@ program
       "Supports OAuth (browser) and API token authentication."
   )
   .option("--force", "Re-run even if already initialised")
+  .option(
+    "--masterkey <key>",
+    "Custom master key (base64-encoded 256-bit key). If not provided, a random key is generated. " +
+      "Example: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols="
+  )
   .action(async (opts) => {
     await runInit(opts).catch(handleError);
   });
