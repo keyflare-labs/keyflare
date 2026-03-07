@@ -59,7 +59,7 @@ wrangler login
 # Create the D1 database and note the database_id
 wrangler d1 create keyflare-db
 
-# Update wrangler.toml with your database_id, then run migrations
+# Update wrangler.jsonc with your database_id, then run migrations
 wrangler d1 migrations apply keyflare-db --remote
 
 # Generate and push the master encryption key

@@ -324,26 +324,30 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
       log("");
     }
 
-    // Patch wrangler.toml with the existing database ID
+    // Patch wrangler.jsonc with the existing database ID
     const serverDir = path.resolve(
       new URL(".", import.meta.url).pathname,
       "../../server"
     );
-    const wranglerTomlPath = path.join(serverDir, "wrangler.toml");
+    const wranglerConfigPath = path.join(serverDir, "wrangler.jsonc");
 
-    const tomlContent = `name = "keyflare"
-main = "src/index.ts"
-compatibility_date = "2024-12-01"
-compatibility_flags = ["nodejs_compat"]
-
-[[d1_databases]]
-binding = "DB"
-database_name = "keyflare-db"
-database_id = "${databaseId}"
-migrations_dir = "migrations"
+    const jsoncContent = `{
+  "name": "keyflare",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "keyflare-db",
+      "database_id": "${databaseId}",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
 `;
-    fs.writeFileSync(wranglerTomlPath, tomlContent, "utf8");
-    success("Updated wrangler.toml with D1 database binding");
+    fs.writeFileSync(wranglerConfigPath, jsoncContent, "utf8");
+    success("Updated wrangler.jsonc with D1 database binding");
 
     // Deploy new worker version
     const deploySpinner = ora("Deploying updated Keyflare Worker...").start();
@@ -429,26 +433,30 @@ migrations_dir = "migrations"
     }
   }
 
-  // ── Step 4: Patch wrangler.toml with real database_id
+  // ── Step 4: Patch wrangler.jsonc with real database_id
   const serverDir = path.resolve(
     new URL(".", import.meta.url).pathname,
     "../../server"
   );
-  const wranglerTomlPath = path.join(serverDir, "wrangler.toml");
+  const wranglerConfigPath = path.join(serverDir, "wrangler.jsonc");
 
-  const tomlContent = `name = "keyflare"
-main = "src/index.ts"
-compatibility_date = "2024-12-01"
-compatibility_flags = ["nodejs_compat"]
-
-[[d1_databases]]
-binding = "DB"
-database_name = "keyflare-db"
-database_id = "${databaseId}"
-migrations_dir = "migrations"
+  const jsoncContent = `{
+  "name": "keyflare",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "keyflare-db",
+      "database_id": "${databaseId}",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
 `;
-  fs.writeFileSync(wranglerTomlPath, tomlContent, "utf8");
-  success("Updated wrangler.toml with D1 database binding");
+  fs.writeFileSync(wranglerConfigPath, jsoncContent, "utf8");
+  success("Updated wrangler.jsonc with D1 database binding");
 
   // ── Step 5: Generate or use master key
   const masterKey = customMasterKey ?? generateMasterKey();

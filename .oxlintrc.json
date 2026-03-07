@@ -1,5 +1,6 @@
 {
   "rules": {
     "typescript/no-floating-promises": "error"
-  }
+  },
+  "ignorePatterns": ["**/worker-configuration.d.ts"]
 }

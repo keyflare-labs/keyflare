@@ -17,7 +17,7 @@ export default defineWorkersConfig(async () => {
 
       poolOptions: {
         workers: {
-          wrangler: { configPath: "./wrangler.toml" },
+          wrangler: { configPath: "./wrangler.jsonc" },
           miniflare: {
             // Persist D1 state to the isolated temp dir, not .wrangler/
             d1Persist: TEST_WRANGLER_DIR,

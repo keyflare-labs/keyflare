@@ -80,7 +80,7 @@ keyflare/
 │   │   │   └── global-setup.ts     # Temp dir lifecycle for test isolation
 │   │   ├── drizzle.config.ts
 │   │   ├── vitest.config.ts
-│   │   └── wrangler.toml
+│   │   └── wrangler.jsonc
 │   │
 │   ├── cli/             # CLI tool (kfl)
 │   │   └── src/

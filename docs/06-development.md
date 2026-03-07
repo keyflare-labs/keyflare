@@ -102,7 +102,7 @@ keyflare/
 │   │   │   └── global-setup.ts    # Temp dir lifecycle for test isolation
 │   │   ├── drizzle.config.ts
 │   │   ├── vitest.config.ts
-│   │   ├── wrangler.toml
+│   │   ├── wrangler.jsonc
 │   │   └── .dev.vars        # gitignored — local MASTER_KEY
 │   │
 │   ├── cli/                 # CLI tool (kfl)
@@ -240,10 +240,10 @@ pnpm --filter @keyflare/cli build      # tsup → dist/index.js (with type decla
 
 ## Type Checking
 
-Type definitions for the Worker environment (bindings, runtime APIs) are generated from `wrangler.toml` via `wrangler types`. The output is committed as `packages/server/worker-configuration.d.ts`.
+Type definitions for the Worker environment (bindings, runtime APIs) are generated from `wrangler.jsonc` via `wrangler types`. The output is committed as `packages/server/worker-configuration.d.ts`.
 
 ```bash
-# Regenerate after changing packages/server/wrangler.json
+# Regenerate after changing packages/server/wrangler.jsonc
 pnpm --filter @keyflare/server cf-typegen
 ```
 

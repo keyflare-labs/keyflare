@@ -72,7 +72,7 @@ When no Keyflare deployment exists:
 1. Prompts for Cloudflare auth method (OAuth browser or API token)
 2. Verifies credentials (`wrangler whoami`)
 3. Creates D1 database `keyflare-db` (or finds it if already exists)
-4. Patches `packages/server/wrangler.toml` with the real `database_id`
+4. Patches `packages/server/wrangler.jsonc` with the real `database_id`
 5. Generates 256-bit `MASTER_KEY` (or uses the one from `--masterkey`)
 6. Deploys the Worker via `wrangler deploy`
 7. Pushes `MASTER_KEY` as a Worker secret
@@ -110,7 +110,7 @@ $ kfl init
 
 ✓ Authenticated as: my-account
 ✓ Created D1 database: keyflare-db (id: abc123...)
-✓ Updated wrangler.toml with D1 database binding
+✓ Updated wrangler.jsonc with D1 database binding
 
 ⚠ MASTER KEY — Save this somewhere safe. It cannot be recovered!
 

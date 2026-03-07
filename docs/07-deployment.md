@@ -33,7 +33,7 @@ You will be prompted to choose:
 
 1. Verifies Cloudflare credentials (`wrangler whoami`)
 2. Creates D1 database `keyflare-db` (or finds it if it already exists)
-3. Patches `packages/server/wrangler.toml` with the real `database_id`
+3. Patches `packages/server/wrangler.jsonc` with the real `database_id`
 4. Generates a 256-bit `MASTER_KEY` — **displayed once, save it now**
 5. Deploys the Worker via `wrangler deploy`
 6. Pushes `MASTER_KEY` as a Worker secret via `wrangler secret put`
@@ -51,7 +51,7 @@ $ kfl init
 
 ✓ Authenticated as: my-account
 ✓ Created D1 database: keyflare-db (id: abc-123-...)
-✓ Updated wrangler.toml with D1 database binding
+✓ Updated wrangler.jsonc with D1 database binding
 
 ⚠ MASTER KEY — Save this somewhere safe. It cannot be recovered!
 
@@ -87,8 +87,8 @@ cd packages/server
 npx wrangler d1 create keyflare-db
 # Note the database_id in the output
 
-# 3. Update wrangler.toml
-# Set database_id = "<id-from-step-2>"
+# 3. Update wrangler.jsonc
+# Set database_id in d1_databases[0] to "<id-from-step-2>"
 
 # 4. Deploy the Worker
 npx wrangler deploy
@@ -193,7 +193,7 @@ The MASTER_KEY and all data persist across redeployments.
 # Workers & Pages → keyflare → Settings → Triggers → Custom Domains
 # Add: secrets.yourdomain.com
 
-# Or via wrangler.toml (then redeploy):
+# Or via wrangler.jsonc (then redeploy):
 # [routes]
 # pattern = "secrets.yourdomain.com/*"
 # zone_name = "yourdomain.com"
