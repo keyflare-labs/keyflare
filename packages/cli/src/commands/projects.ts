@@ -4,14 +4,19 @@ import type {
   DeleteProjectResponse,
 } from "@keyflare/shared";
 import { api } from "../api/client.js";
-import { success, error, dim, bold } from "../output/log.js";
+import { success, error, dim, bold, yellow, cyan } from "../output/log.js";
 
 export async function runProjectsList() {
   const data = await api.get<ListProjectsResponse>("/projects");
   const { projects } = data;
 
   if (projects.length === 0) {
-    console.log(dim("No projects found. Create one with: kfl projects create <name>"));
+    console.log(
+      yellow(bold("No projects found.")) +
+        " " +
+        cyan("Create one with: kfl projects create <name>") +
+        "\n",
+    );
     return;
   }
 
@@ -19,12 +24,12 @@ export async function runProjectsList() {
   const envW = 12;
 
   console.log(
-    bold(`${"NAME".padEnd(nameW)}  ${"ENVIRONMENTS".padEnd(envW)}  CREATED`)
+    bold(`${"NAME".padEnd(nameW)}  ${"ENVIRONMENTS".padEnd(envW)}  CREATED`),
   );
   for (const p of projects) {
     const created = new Date(p.created_at).toISOString().slice(0, 10);
     console.log(
-      `${p.name.padEnd(nameW)}  ${String(p.environment_count).padEnd(envW)}  ${created}`
+      `${p.name.padEnd(nameW)}  ${String(p.environment_count).padEnd(envW)}  ${created}`,
     );
   }
 }
@@ -34,7 +39,10 @@ export async function runProjectsCreate(name: string) {
   success(`Project "${data.name}" created`);
 }
 
-export async function runProjectsDelete(name: string, opts: { force?: boolean }) {
+export async function runProjectsDelete(
+  name: string,
+  opts: { force?: boolean },
+) {
   if (!opts.force) {
     const { confirm } = await import("@inquirer/prompts");
     const confirmed = await confirm({
@@ -49,6 +57,6 @@ export async function runProjectsDelete(name: string, opts: { force?: boolean })
 
   const data = await api.delete<DeleteProjectResponse>(`/projects/${name}`);
   success(
-    `Project "${data.deleted}" deleted (${data.environments_removed} environments, ${data.secrets_removed} secrets removed)`
+    `Project "${data.deleted}" deleted (${data.environments_removed} environments, ${data.secrets_removed} secrets removed)`,
   );
 }
