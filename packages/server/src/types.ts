@@ -1,4 +1,4 @@
-import type { KeyType, Permission, KeyScope } from "@keyflare/shared";
+import type { KeyType, Permission, KeyScope, Logger } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 /** Cloudflare Worker bindings (c.env) */
@@ -28,5 +28,6 @@ export type AppEnv = {
     db: DrizzleD1Database;
     derivedKeys: DerivedKeys;
     auth: AuthContext;
+    logger: Logger;
   };
 };

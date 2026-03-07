@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { VERSION } from "@keyflare/shared";
 import type { HealthResponse } from "@keyflare/shared";
 import { dbAndKeysMiddleware, authMiddleware } from "./middleware/hono.js";
+import { loggerMiddleware } from "./middleware/logger.js";
 import { handleBootstrap } from "./routes/bootstrap.js";
 import {
   handleCreateKey,
@@ -28,6 +29,9 @@ import type { AppEnv } from "./types.js";
 import { jsonOk, jsonError } from "./utils.js";
 
 const app = new Hono<AppEnv>();
+
+// Logger for all routes (sets c.get("logger"))
+app.use("*", loggerMiddleware());
 
 // ─── Health (no middleware) ───
 app.get("/health", (c) =>
@@ -181,7 +185,7 @@ app.notFound((c) =>
 
 // ─── Global error handler ───
 app.onError((err, c) => {
-  console.error("Internal error:", err);
+  c.get("logger").error("Internal error:", err);
   return jsonError("INTERNAL_ERROR", "An internal error occurred", 500);
 });
 

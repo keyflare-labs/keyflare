@@ -13,7 +13,6 @@ import { createLogger, type Logger } from "@keyflare/shared";
 enum LogPrefix {
   Incoming = "Incoming request -",
   Outgoing = "Outgoing response -",
-  Error = "xxx",
 }
 
 export const loggerMiddleware = (): MiddlewareHandler => {
