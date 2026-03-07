@@ -7,7 +7,6 @@
   "types": "./src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -17,6 +16,8 @@
     "db:studio:remote": "DRIZZLE_REMOTE=true drizzle-kit studio --port 4983",
     "db:migrate:local": "wrangler d1 migrations apply keyflare-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply keyflare-db --remote",
+    "deploy": "pnpm run db:migrations:apply && wrangler deploy",
+    "db:migrations:apply": "wrangler d1 migrations apply DB_BINDING --remote",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

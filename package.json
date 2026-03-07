@@ -13,11 +13,12 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "types": "pnpm --filter @keyflare/server cf-typegen",
-    "kfl": "tsx packages/cli/src/index.ts"
+    "kfl": "tsx packages/cli/src/index.ts",
+    "deploy": "pnpm -F @keyflare/server run db:migrations:apply && pnpm -F @keyflare/server run deploy"
   },
   "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
   },
   "license": "MIT",
   "dependencies": {

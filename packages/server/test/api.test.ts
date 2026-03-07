@@ -69,7 +69,7 @@ async function del(path: string, apiKey: string) {
 
 /** Clean all tables between tests using Drizzle. */
 async function cleanDb() {
-  const db = drizzle(env.DB);
+  const db = drizzle(env.DB_BINDING);
   await db.delete(secrets);
   await db.delete(environments);
   await db.delete(projects);
@@ -81,7 +81,7 @@ async function cleanDb() {
 describe("Keyflare API", () => {
   beforeAll(async () => {
     // Apply Drizzle-generated migrations via Cloudflare's test helper
-    await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+    await applyD1Migrations(env.DB_BINDING, env.TEST_MIGRATIONS);
   });
 
   beforeEach(async () => {

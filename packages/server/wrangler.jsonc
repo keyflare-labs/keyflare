@@ -12,7 +12,7 @@
   // D1 database binding
   "d1_databases": [
     {
-      "binding": "DB",
+      "binding": "DB_BINDING",
       "database_name": "keyflare-db",
       "database_id": "local-dev-db",
       "migrations_dir": "migrations"

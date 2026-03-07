@@ -7,7 +7,7 @@ import { jsonError } from "../utils.js";
 
 /** Injects D1 db and derived keys into context. Use for all routes except /health. */
 export const dbAndKeysMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const db = drizzle(c.env.DB);
+  const db = drizzle(c.env.DB_BINDING);
   const derivedKeys = await deriveMasterKeys(c.env.MASTER_KEY);
   c.set("db", db);
   c.set("derivedKeys", derivedKeys);

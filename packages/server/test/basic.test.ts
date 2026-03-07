@@ -6,7 +6,7 @@ let apiKey: string;
 
 describe("Basic smoke tests", () => {
   beforeAll(async () => {
-    await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+    await applyD1Migrations(env.DB_BINDING, env.TEST_MIGRATIONS);
     const bootstrapRes = await SELF.fetch("http://localhost/bootstrap", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

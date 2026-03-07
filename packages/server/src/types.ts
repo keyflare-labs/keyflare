@@ -1,7 +1,7 @@
 import type { KeyType, Permission, KeyScope, Logger } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 
-/** Worker bindings (DB, MASTER_KEY) — from worker-configuration.d.ts (wrangler types). */
+/** Worker bindings (DB_BINDING, MASTER_KEY) — from worker-configuration.d.ts (wrangler types). */
 export type Env = Cloudflare.Env;
 
 /** Authenticated key context passed to route handlers */

@@ -180,7 +180,7 @@ This means:
 
 ### Migrations in tests
 
-`vitest.config.ts` reads the Drizzle migration files at startup via `readD1Migrations()` and passes them to Miniflare as a binding (`TEST_MIGRATIONS`). The `beforeAll` hook in `api.test.ts` calls `applyD1Migrations(env.DB, env.TEST_MIGRATIONS)` to apply them before any test runs.
+`vitest.config.ts` reads the Drizzle migration files at startup via `readD1Migrations()` and passes them to Miniflare as a binding (`TEST_MIGRATIONS`). The `beforeAll` hook in `api.test.ts` calls `applyD1Migrations(env.DB_BINDING, env.TEST_MIGRATIONS)` to apply them before any test runs.
 
 New migrations are therefore picked up automatically — no test code changes needed when the schema changes.
 
