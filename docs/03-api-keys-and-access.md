@@ -74,7 +74,7 @@ When you first deploy Keyflare, there are no API keys. The `kfl init` command ha
      │                                 │<─────────────────────────────
      │                                 │                             │
      │  9. Display key + save to       │                             │
-     │     ~/.config/keyflare/config   │                             │
+     │     ~/.config/keyflare/         │                             │
      │<────────────────────────────────│                             │
      │                                 │                             │
      │  ⚠️ "Save this key! It won't   │                             │
@@ -222,16 +222,15 @@ The CLI stores its configuration in `~/.config/keyflare/`:
 
 ```
 ~/.config/keyflare/
-├── config.toml          # Default settings
+├── config.yaml          # Default settings
 └── credentials           # API key (plaintext — file permissions 0600)
 ```
 
-**config.toml:**
-```toml
-[default]
-api_url = "https://keyflare.<account>.workers.dev"
-project = "my-api"          # Default project (optional)
-environment = "development"  # Default environment (optional)
+**config.yaml:**
+```yaml
+api_url: "https://keyflare.<account>.workers.dev"
+project: "my-api"          # Default project (optional)
+environment: "development"  # Default environment (optional)
 ```
 
 **credentials:**

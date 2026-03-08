@@ -384,7 +384,7 @@ $ kfl run --project my-api --config production -- npm run build
 # Inject development secrets into a dev server
 $ kfl run --project my-api --config development -- npm run dev
 
-# Short form with defaults from config.toml
+# Short form with defaults from config.yaml
 $ kfl run -- npm run dev
 
 # Use in CI/CD
@@ -624,7 +624,7 @@ Press Ctrl-C to stop.
 
 #### Local mode
 
-Set `KEYFLARE_LOCAL=true` (or configure `~/.config/keyflare/config.toml` with `api_url = "http://localhost:8787"`) to make all `kfl` commands target the local server:
+Set `KEYFLARE_LOCAL=true` (or configure `~/.config/keyflare/config.yaml` with `api_url: "http://localhost:8787"`) to make all `kfl` commands target the local server:
 
 ```bash
 export KEYFLARE_LOCAL=true

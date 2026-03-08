@@ -4,7 +4,7 @@ import path from "node:path";
 import { makeDebug, redact } from "./debug.js";
 
 const CONFIG_DIR = path.join(os.homedir(), ".config", "keyflare");
-const CONFIG_FILE = path.join(CONFIG_DIR, "config.toml");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.yaml");
 const CREDENTIALS_FILE = path.join(CONFIG_DIR, "credentials");
 const debug = makeDebug("config");
 
@@ -25,12 +25,18 @@ export function readConfig(): Partial<KeyflareConfig> {
     const raw = fs.readFileSync(CONFIG_FILE, "utf8");
     const config: Partial<KeyflareConfig> = {};
     for (const line of raw.split("\n")) {
-      const m = line.match(/^api_url\s*=\s*"(.+)"/);
-      if (m) config.apiUrl = m[1];
-      const mp = line.match(/^project\s*=\s*"(.+)"/);
-      if (mp) config.project = mp[1];
-      const me = line.match(/^environment\s*=\s*"(.+)"/);
-      if (me) config.environment = me[1];
+      const trimmed = line.trim();
+      if (trimmed === "" || trimmed.startsWith("#")) continue;
+
+      const m = trimmed.match(/^(api_url|project|environment)\s*:\s*(.+)$/);
+      if (!m) continue;
+
+      const [, key, rawValue] = m;
+      const value = parseYamlScalar(rawValue);
+
+      if (key === "api_url") config.apiUrl = value;
+      if (key === "project") config.project = value;
+      if (key === "environment") config.environment = value;
     }
     debug("config loaded: apiUrl=%s project=%s environment=%s", config.apiUrl, config.project, config.environment);
     return config;
@@ -43,10 +49,29 @@ export function readConfig(): Partial<KeyflareConfig> {
 export function writeConfig(config: KeyflareConfig) {
   debug("writing config: apiUrl=%s project=%s environment=%s", config.apiUrl, config.project, config.environment);
   ensureConfigDir();
-  const lines = [`[default]`, `api_url = "${config.apiUrl}"`];
-  if (config.project) lines.push(`project = "${config.project}"`);
-  if (config.environment) lines.push(`environment = "${config.environment}"`);
+  const lines = [`api_url: ${yamlQuote(config.apiUrl)}`];
+  if (config.project) lines.push(`project: ${yamlQuote(config.project)}`);
+  if (config.environment) lines.push(`environment: ${yamlQuote(config.environment)}`);
   fs.writeFileSync(CONFIG_FILE, lines.join("\n") + "\n", "utf8");
+}
+
+function yamlQuote(value: string): string {
+  return JSON.stringify(value);
+}
+
+function parseYamlScalar(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return trimmed.slice(1, -1);
+    }
+  }
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1).replace(/''/g, "'");
+  }
+  return trimmed;
 }
 
 export function readApiKey(): string | undefined {
