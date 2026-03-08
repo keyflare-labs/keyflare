@@ -46,3 +46,7 @@ The D1 schema is correct as-is. Many columns have both a hash and an encryption 
 - [ ] do not auth on every run. Please check first how the user is logged in with `npx wrangler whoami --json`
 - [ ] do not store the keyflare config as toml. Use yaml.
 
+## Server
+
+- [ ] use z-validator with hono
+
