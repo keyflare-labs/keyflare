@@ -52,6 +52,7 @@ $ kfl init
 ✓ Authenticated as: my-account
 ✓ Worker deployed: https://keyflare.my-account.workers.dev
 ✓ No MASTER_KEY secret found
+✓ Master key stored as Worker secret
 
 ⚠ MASTER KEY — Save this somewhere safe. It cannot be recovered!
 
@@ -59,8 +60,6 @@ $ kfl init
 
 ? I have saved the master key  Yes
 
-✓ Worker deployed: https://keyflare.my-account.workers.dev
-✓ Master key stored as Worker secret
 ✓ Database migrations applied
 ✓ Root API key created
 

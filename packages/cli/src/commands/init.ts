@@ -298,13 +298,6 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
   } else {
     const masterKey = customMasterKey ?? generateMasterKey();
     debug("generated new master key (%s)", redact(masterKey));
-    if (!customMasterKey) {
-      warn(
-        `\n⚠️  MASTER KEY — Save this somewhere safe. It cannot be recovered!\n`
-      );
-      log(bold(`  ${masterKey}\n`));
-      await confirm({ message: "I have saved the master key", default: false });
-    }
 
     const secretSpinner = ora("Pushing master key to Worker secrets...").start();
     try {
@@ -324,6 +317,14 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
       debug("MASTER_KEY secret stored");
       secretSpinner.succeed("Master key stored as Worker secret");
       masterKeyToDisplay = masterKey;
+
+      if (!customMasterKey) {
+        warn(
+          `\n⚠️  MASTER KEY — Save this somewhere safe. It cannot be recovered!\n`
+        );
+        log(bold(`  ${masterKey}\n`));
+        await confirm({ message: "I have saved the master key", default: false });
+      }
     } catch (err: any) {
       secretSpinner.fail(`Failed to push master key: ${err.message}`);
       process.exit(1);
