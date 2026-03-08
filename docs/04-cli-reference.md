@@ -656,7 +656,7 @@ kfl secrets set DB_URL=postgres://localhost --project my-api --config developmen
 | `KEYFLARE_PROJECT` | Default project (overrides config file) |
 | `KEYFLARE_CONFIG` | Default config/environment (overrides config file) |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token used by `kfl init` (skips auth prompt) |
-| `DEBUG` | Set to `keyflare` to enable CLI debug logs (for example: `DEBUG=keyflare kfl init`) |
+| `DEBUG` | Set to `keyflare` to enable CLI debug logs (for example: `DEBUG=keyflare kfl init`). Logs include scoped prefixes like `[config]` and support printf-style placeholders (`%s`, `%d`, `%o`). |
 
 ## Exit Codes
 

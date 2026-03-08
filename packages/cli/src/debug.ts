@@ -3,8 +3,8 @@ import createDebug from "debug";
 const root = createDebug("keyflare");
 
 export function makeDebug(scope: string) {
-  return (...args: unknown[]) => {
-    root(`[${scope}]`, ...args);
+  return (message: string, ...args: unknown[]) => {
+    root(`[${scope}] ${message}`, ...args);
   };
 }
 

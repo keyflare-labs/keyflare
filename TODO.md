@@ -44,3 +44,5 @@ The D1 schema is correct as-is. Many columns have both a hash and an encryption 
 - [ ] make sure it's idempotent
 - [ ] clone the repo locally in tmp to run the wrangler commands (or can we not use at all the server path?)
 - [ ] do not auth on every run. Please check first how the user is logged in with `npx wrangler whoami --json`
+- [ ] do not store the keyflare config as toml. Use yaml.
+

@@ -34,6 +34,14 @@ import { makeDebug } from "./debug.js";
 
 const program = new Command();
 const debug = makeDebug("index");
+let cachedDefaultConfig: ReturnType<typeof readConfig> | undefined;
+
+function readDefaultConfig(): ReturnType<typeof readConfig> {
+  if (!cachedDefaultConfig) {
+    cachedDefaultConfig = readConfig();
+  }
+  return cachedDefaultConfig;
+}
 
 debug("argv=%o", process.argv.slice(2));
 debug("DEBUG=%s", process.env.DEBUG ?? "<unset>");
@@ -323,13 +331,13 @@ keys
 /** Read project default from env or config file (used as Commander default). */
 function resolveProject(): string | undefined {
   if (process.env.KEYFLARE_PROJECT) return process.env.KEYFLARE_PROJECT;
-  return readConfig().project;
+  return readDefaultConfig().project;
 }
 
 /** Read config/environment default from env or config file. */
 function resolveConfig(): string | undefined {
   if (process.env.KEYFLARE_CONFIG) return process.env.KEYFLARE_CONFIG;
-  return readConfig().environment;
+  return readDefaultConfig().environment;
 }
 
 /** Collector for repeatable options (--scope a --scope b → [a, b]). */
