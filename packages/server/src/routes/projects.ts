@@ -1,5 +1,4 @@
 import type {
-  CreateProjectRequest,
   CreateProjectResponse,
   ListProjectsResponse,
   DeleteProjectResponse,
@@ -14,22 +13,19 @@ import {
   countEnvironments,
 } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
-import { jsonOk, jsonError, parseJsonBody } from "../utils.js";
+import { jsonOk, jsonError } from "../utils.js";
 import { isUserKey } from "../middleware/auth.js";
+import type { CreateProjectInput } from "../validation/schemas.js";
 
 export async function handleCreateProject(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
-  _derivedKeys: DerivedKeys
+  _derivedKeys: DerivedKeys,
+  body: CreateProjectInput
 ): Promise<Response> {
   if (!isUserKey(auth)) {
     return jsonError("FORBIDDEN", "Only user keys can create projects", 403);
-  }
-
-  const body = await parseJsonBody<CreateProjectRequest>(request);
-  if (!body || !body.name || typeof body.name !== "string" || !body.name.trim()) {
-    return jsonError("BAD_REQUEST", "Missing or empty field: name", 400);
   }
 
   const name = body.name.trim();

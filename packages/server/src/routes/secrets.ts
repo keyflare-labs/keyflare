@@ -1,8 +1,6 @@
 import type {
   GetSecretsResponse,
-  SetSecretsRequest,
   SetSecretsResponse,
-  PatchSecretsRequest,
   PatchSecretsResponse,
 } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
@@ -16,9 +14,10 @@ import {
   countSecrets,
 } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
-import { jsonOk, jsonError, parseJsonBody } from "../utils.js";
+import { jsonOk, jsonError } from "../utils.js";
 import { hasScope, canWrite } from "../middleware/auth.js";
 import { resolveProject, resolveEnvironment } from "./configs.js";
+import type { SetSecretsInput, PatchSecretsInput } from "../validation/schemas.js";
 
 export async function handleGetSecrets(
   request: Request,
@@ -64,12 +63,13 @@ export async function handleGetSecrets(
 }
 
 export async function handleSetSecrets(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string
+  configName: string,
+  body: SetSecretsInput
 ): Promise<Response> {
   // Scope + write check
   if (auth.keyType === "system") {
@@ -83,11 +83,6 @@ export async function handleSetSecrets(
     if (!canWrite(auth)) {
       return jsonError("FORBIDDEN", "Key does not have write permission", 403);
     }
-  }
-
-  const body = await parseJsonBody<SetSecretsRequest>(request);
-  if (!body || !body.secrets || typeof body.secrets !== "object") {
-    return jsonError("BAD_REQUEST", "Missing required field: secrets", 400);
   }
 
   const projectResult = await resolveProject(db, derivedKeys, projectName);
@@ -131,12 +126,13 @@ export async function handleSetSecrets(
 }
 
 export async function handlePatchSecrets(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string
+  configName: string,
+  body: PatchSecretsInput
 ): Promise<Response> {
   // Scope + write check
   if (auth.keyType === "system") {
@@ -150,15 +146,6 @@ export async function handlePatchSecrets(
     if (!canWrite(auth)) {
       return jsonError("FORBIDDEN", "Key does not have write permission", 403);
     }
-  }
-
-  const body = await parseJsonBody<PatchSecretsRequest>(request);
-  if (!body || (!body.set && !body.delete)) {
-    return jsonError(
-      "BAD_REQUEST",
-      "At least one of 'set' or 'delete' is required",
-      400
-    );
   }
 
   const projectResult = await resolveProject(db, derivedKeys, projectName);

@@ -881,7 +881,7 @@ describe("Keyflare API", () => {
         );
         expect(updateRes.status).toBe(400);
         const json = (await updateRes.json()) as any;
-        expect(json.error.message).toContain("Missing required fields");
+        expect(json.error.message).toContain("Required");
       });
 
       it("returns 400 when permission is missing", async () => {
@@ -904,7 +904,7 @@ describe("Keyflare API", () => {
         );
         expect(updateRes.status).toBe(400);
         const json = (await updateRes.json()) as any;
-        expect(json.error.message).toContain("Missing required fields");
+        expect(json.error.message).toContain("Required");
       });
 
       it("returns 400 for invalid permission value", async () => {
@@ -930,7 +930,7 @@ describe("Keyflare API", () => {
         );
         expect(updateRes.status).toBe(400);
         const json = (await updateRes.json()) as any;
-        expect(json.error.message).toContain("Permission must be 'read' or 'readwrite'");
+        expect(json.error.message).toContain("Invalid enum value");
       });
 
       it("returns 403 when called with a system key", async () => {

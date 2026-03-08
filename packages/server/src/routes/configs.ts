@@ -1,5 +1,4 @@
 import type {
-  CreateConfigRequest,
   CreateConfigResponse,
   ListConfigsResponse,
 } from "@keyflare/shared";
@@ -13,8 +12,9 @@ import {
   countSecrets,
 } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
-import { jsonOk, jsonError, parseJsonBody } from "../utils.js";
+import { jsonOk, jsonError } from "../utils.js";
 import { isUserKey, hasScope } from "../middleware/auth.js";
+import type { CreateConfigInput } from "../validation/schemas.js";
 
 /** Resolve a project by name → { id, name } or return error Response. */
 export async function resolveProject(
@@ -44,11 +44,12 @@ export async function resolveEnvironment(
 }
 
 export async function handleCreateConfig(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
-  projectName: string
+  projectName: string,
+  body: CreateConfigInput
 ): Promise<Response> {
   if (!isUserKey(auth)) {
     return jsonError(
@@ -56,11 +57,6 @@ export async function handleCreateConfig(
       "Only user keys can create configs",
       403
     );
-  }
-
-  const body = await parseJsonBody<CreateConfigRequest>(request);
-  if (!body || !body.name || typeof body.name !== "string" || !body.name.trim()) {
-    return jsonError("BAD_REQUEST", "Missing or empty field: name", 400);
   }
 
   const projectResult = await resolveProject(db, derivedKeys, projectName);

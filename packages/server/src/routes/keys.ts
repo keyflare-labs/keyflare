@@ -5,12 +5,10 @@ import {
   KEY_PREFIX_LENGTH,
 } from "@keyflare/shared";
 import type {
-  CreateKeyRequest,
   CreateKeyResponse,
   ListKeysResponse,
   KeyInfo,
   RevokeKeyResponse,
-  UpdateKeyRequest,
   UpdateKeyResponse,
 } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
@@ -18,38 +16,18 @@ import { sha256 } from "../crypto/hash.js";
 import { encrypt, decrypt } from "../crypto/encrypt.js";
 import { insertKey, listKeys, revokeKeyByPrefix, getKeyByPrefix, updateKeyScopes } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
-import { jsonOk, jsonError, parseJsonBody } from "../utils.js";
+import { jsonOk, jsonError } from "../utils.js";
+import type { CreateKeyInput, UpdateKeyInput } from "../validation/schemas.js";
 
 export async function handleCreateKey(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
-  derivedKeys: DerivedKeys
+  derivedKeys: DerivedKeys,
+  body: CreateKeyInput
 ): Promise<Response> {
   if (!auth || auth.keyType !== "user") {
     return jsonError("FORBIDDEN", "Only user keys can create API keys", 403);
-  }
-
-  const body = await parseJsonBody<CreateKeyRequest>(request);
-  if (!body || !body.type || !body.label) {
-    return jsonError("BAD_REQUEST", "Missing required fields: type, label", 400);
-  }
-
-  if (body.type === "system") {
-    if (!body.scopes || body.scopes.length === 0) {
-      return jsonError(
-        "BAD_REQUEST",
-        "System keys require at least one scope",
-        400
-      );
-    }
-    if (!body.permission || !["read", "readwrite"].includes(body.permission)) {
-      return jsonError(
-        "BAD_REQUEST",
-        "System keys require permission: 'read' or 'readwrite'",
-        400
-      );
-    }
   }
 
   const prefix_str =
@@ -161,11 +139,12 @@ export async function handleRevokeKey(
 }
 
 export async function handleUpdateKey(
-  request: Request,
+  _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
-  prefix: string
+  prefix: string,
+  body: UpdateKeyInput
 ): Promise<Response> {
   if (!auth || auth.keyType !== "user") {
     return jsonError("FORBIDDEN", "Only user keys can update API keys", 403);
@@ -183,23 +162,6 @@ export async function handleUpdateKey(
     return jsonError(
       "BAD_REQUEST",
       "User keys cannot have their scopes updated (they have full access)",
-      400
-    );
-  }
-
-  const body = await parseJsonBody<UpdateKeyRequest>(request);
-  if (!body || !body.scopes || !body.permission) {
-    return jsonError(
-      "BAD_REQUEST",
-      "Missing required fields: scopes, permission",
-      400
-    );
-  }
-
-  if (!["read", "readwrite"].includes(body.permission)) {
-    return jsonError(
-      "BAD_REQUEST",
-      "Permission must be 'read' or 'readwrite'",
       400
     );
   }

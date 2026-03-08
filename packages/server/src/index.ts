@@ -27,6 +27,15 @@ import {
 } from "./routes/secrets.js";
 import type { AppEnv } from "./types.js";
 import { jsonOk, jsonError } from "./utils.js";
+import { jsonValidator } from "./validation/middleware.js";
+import {
+  createConfigSchema,
+  createKeySchema,
+  createProjectSchema,
+  patchSecretsSchema,
+  setSecretsSchema,
+  updateKeySchema,
+} from "./validation/schemas.js";
 
 const app = new Hono<AppEnv>();
 
@@ -54,11 +63,12 @@ const keysApp = new Hono<AppEnv>()
     const derivedKeys = c.get("derivedKeys");
     return handleListKeys(c.req.raw, db, auth, derivedKeys);
   })
-  .post("/", async (c) => {
+  .post("/", jsonValidator(createKeySchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
-    return handleCreateKey(c.req.raw, db, auth, derivedKeys);
+    const body = c.req.valid("json");
+    return handleCreateKey(c.req.raw, db, auth, derivedKeys, body);
   })
   .delete("/:prefix", async (c) => {
     const db = c.get("db");
@@ -66,12 +76,13 @@ const keysApp = new Hono<AppEnv>()
     const prefix = c.req.param("prefix");
     return handleRevokeKey(c.req.raw, db, auth, prefix);
   })
-  .put("/:prefix", async (c) => {
+  .put("/:prefix", jsonValidator(updateKeySchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
     const prefix = c.req.param("prefix");
-    return handleUpdateKey(c.req.raw, db, auth, derivedKeys, prefix);
+    const body = c.req.valid("json");
+    return handleUpdateKey(c.req.raw, db, auth, derivedKeys, prefix, body);
   });
 app.route("/keys", keysApp);
 
@@ -84,11 +95,12 @@ const projectsApp = new Hono<AppEnv>()
     const derivedKeys = c.get("derivedKeys");
     return handleListProjects(c.req.raw, db, auth, derivedKeys);
   })
-  .post("/", async (c) => {
+  .post("/", jsonValidator(createProjectSchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
-    return handleCreateProject(c.req.raw, db, auth, derivedKeys);
+    const body = c.req.valid("json");
+    return handleCreateProject(c.req.raw, db, auth, derivedKeys, body);
   })
   .delete("/:name", async (c) => {
     const db = c.get("db");
@@ -107,12 +119,13 @@ const configsApp = new Hono<AppEnv>()
     const project = decodeURIComponent(c.req.param("project") ?? "");
     return handleListConfigs(c.req.raw, db, auth, derivedKeys, project);
   })
-  .post("/", async (c) => {
+  .post("/", jsonValidator(createConfigSchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
     const project = decodeURIComponent(c.req.param("project") ?? "");
-    return handleCreateConfig(c.req.raw, db, auth, derivedKeys, project);
+    const body = c.req.valid("json");
+    return handleCreateConfig(c.req.raw, db, auth, derivedKeys, project, body);
   })
   .delete("/:config", async (c) => {
     const db = c.get("db");
@@ -144,34 +157,38 @@ const configsApp = new Hono<AppEnv>()
       config
     );
   })
-  .put("/:config/secrets", async (c) => {
+  .put("/:config/secrets", jsonValidator(setSecretsSchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
     const project = decodeURIComponent(c.req.param("project") ?? "");
     const config = decodeURIComponent(c.req.param("config") ?? "");
+    const body = c.req.valid("json");
     return handleSetSecrets(
       c.req.raw,
       db,
       auth,
       derivedKeys,
       project,
-      config
+      config,
+      body
     );
   })
-  .patch("/:config/secrets", async (c) => {
+  .patch("/:config/secrets", jsonValidator(patchSecretsSchema), async (c) => {
     const db = c.get("db");
     const auth = c.get("auth");
     const derivedKeys = c.get("derivedKeys");
     const project = decodeURIComponent(c.req.param("project") ?? "");
     const config = decodeURIComponent(c.req.param("config") ?? "");
+    const body = c.req.valid("json");
     return handlePatchSecrets(
       c.req.raw,
       db,
       auth,
       derivedKeys,
       project,
-      config
+      config,
+      body
     );
   });
 

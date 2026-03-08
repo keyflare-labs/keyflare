@@ -44,6 +44,14 @@ Authorization: Bearer kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
 | 409 | `CONFLICT` | Resource already exists / bootstrap already done |
 | 500 | `INTERNAL_ERROR` | Server error |
 
+## Request Validation
+
+Request payloads are validated at the route layer using Zod via Hono middleware.
+
+- JSON bodies use strict schemas (`.strict()`), so unknown fields are rejected.
+- Invalid/missing fields return `400 BAD_REQUEST` with the standard error envelope.
+- Error messages are schema-derived (for example: `Required`, `Invalid enum value`, or custom validation text).
+
 ---
 
 ## Endpoints
