@@ -5,7 +5,7 @@
 One Worker. One D1 database. One master key. Zero trust storage.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/keyflare/keyflare)
-
+[![NPM](https://nodei.co/npm/@keyflare/cli.png?compact=true)](https://npmjs.org/package/@keyflare/cli)
 ---
 
 ## What is Keyflare? 🔥
