@@ -35,7 +35,8 @@ jobs:
       - name: Set version from tag
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          pnpm --filter @keyflare/cli pkg set version="$VERSION"
+          npm pkg set version="$VERSION"
+        working-directory: packages/cli
 
       - name: Publish CLI to npm
         run: pnpm publish packages/cli --no-git-checks --access public --provenance
