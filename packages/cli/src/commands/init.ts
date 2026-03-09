@@ -402,8 +402,13 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
   const verifySpinner = ora("Verifying Cloudflare credentials...").start();
   try {
     const whoami = wrangler(["whoami"], authEnv);
-    const accountMatch = whoami.stdout.match(/Account Name:\s+(.+)/);
-    const accountName = accountMatch?.[1]?.trim() ?? "your account";
+    const lines = whoami.stdout.split("\n");
+    const accountNameLine = lines.find(
+      (line) => line.includes("│") && line.includes("Account") && !line.includes("Account Name")
+    );
+    const accountName = accountNameLine
+      ? accountNameLine.split("│")[1]?.trim() ?? "your account"
+      : "your account";
     debug("authenticated account=%s", accountName);
     verifySpinner.succeed(`Authenticated as: ${bold(accountName)}`);
   } catch {
