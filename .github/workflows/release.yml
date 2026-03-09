@@ -33,4 +33,4 @@ jobs:
         run: pnpm run build
 
       - name: Publish CLI to npm
-        run: pnpm --filter @keyflare/cli publish --no-git-checks --access public --provenance
+        run: pnpm publish packages/cli --no-git-checks --access public --provenance

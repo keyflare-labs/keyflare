@@ -1,6 +1,6 @@
 {
   "name": "@keyflare/cli",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Keyflare CLI — kfl",
   "type": "module",
   "bin": {
