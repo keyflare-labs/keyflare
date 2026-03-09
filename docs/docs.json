@@ -1,0 +1,32 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "linden",
+  "name": "Documentation",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#4bb28c",
+    "dark": "#4bc377"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "pages": [
+          "test"
+        ]
+      },
+      {
+        "tab": "CLI",
+        "pages": [
+          "test-1"
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "pages": [
+          "test-2"
+        ]
+      }
+    ]
+  }
+}
