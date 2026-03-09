@@ -15,11 +15,14 @@ kfl init
 ```
 
 This single command handles everything:
-- Deploys the Worker
-- Creates the D1 database
-- Generates and stores the master key
-- Applies database migrations
-- Creates the first root API key
+1. Authenticates with Cloudflare (reuses existing session, or prompts for OAuth/API token)
+2. Checks whether the `keyflare` worker already exists on your account
+3. Deploys (or redeploys) the Worker via `wrangler deploy`
+4. Resolves the D1 `database_id` from the **live worker bindings** — reads directly from Cloudflare, never trusts local config
+5. Patches `wrangler.jsonc` locally with the resolved `database_id`
+6. Generates and stores the master key (skipped if one already exists)
+7. Applies database migrations using the resolved `database_id` explicitly
+8. Creates the first root API key (idempotent)
 
 ## Deployment Architecture
 

@@ -176,20 +176,20 @@ export async function runDevInit(options: { force?: boolean } = {}) {
   serverSpinner.succeed(`Local server ready at ${bold(LOCAL_API_URL)}`);
 
   // ── Step 4: Bootstrap
-  const bootstrapSpinner = ora("Creating local root API key...").start();
+  const bootstrapSpinner = ora("Creating local admin API key...").start();
   process.env.KEYFLARE_API_URL = LOCAL_API_URL;
 
-  let rootKey: string;
+  let adminKey: string;
   try {
     const data = await api.post<BootstrapResponse>("/bootstrap");
-    rootKey = data.key;
-    debug("local bootstrap created root key (%s)", redact(rootKey));
-    bootstrapSpinner.succeed("Root API key created");
+    adminKey = data.key;
+    debug("local bootstrap created admin key (%s)", redact(adminKey));
+    bootstrapSpinner.succeed("Admin API key created");
   } catch (err: any) {
     if (err instanceof KeyflareApiError && err.code === "CONFLICT") {
-      bootstrapSpinner.warn("Bootstrap already done for this local instance");
+      bootstrapSpinner.succeed("Local instance already initialised — existing API keys preserved");
       warn(
-        "If you want to reset, delete the local .wrangler/ state directory\n" +
+        "To reset, delete the local .wrangler/ state directory\n" +
         `in packages/server and run this command again.\n`
       );
       proc.kill();
@@ -204,18 +204,18 @@ export async function runDevInit(options: { force?: boolean } = {}) {
 
   // ── Step 5: Save config
   writeConfig({ apiUrl: LOCAL_API_URL });
-  writeApiKey(rootKey);
+  writeApiKey(adminKey);
   debug("local config and api key written");
 
   log(
     `\n${bold("✓ Local setup complete!")}\n\n` +
-    `Your root API key ${dim("(saved to ~/.config/keyflare/)")}:\n\n` +
-    `  ${bold(rootKey)}\n\n` +
+    `Your admin API key ${dim("(saved to ~/.config/keyflare/)")}:\n\n` +
+    `  ${bold(adminKey)}\n\n` +
     `Start the local server anytime with:\n\n` +
     `  ${bold("kfl dev server")}\n\n` +
     `Or set these env vars to use the local instance:\n\n` +
     `  ${bold(`KEYFLARE_LOCAL=true`)}\n` +
-    `  ${bold(`KEYFLARE_API_KEY=${rootKey}`)}\n`
+    `  ${bold(`KEYFLARE_API_KEY=${adminKey}`)}\n`
   );
 }
 

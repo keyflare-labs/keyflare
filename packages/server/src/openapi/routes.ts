@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { describeRoute, resolver } from "hono-openapi";
+import { describeRoute, resolver, type ResponsesWithResolver } from "hono-openapi";
 import {
   errorResponseSchema,
   healthResponseSchema,
@@ -18,7 +18,7 @@ import {
   patchSecretsResponseSchema,
 } from "../validation/response-schemas.js";
 
-export const defaultResponses = {
+export const defaultResponses: ResponsesWithResolver = {
   400: {
     description: "Bad Request - Invalid request body or parameters",
     content: {
@@ -39,7 +39,7 @@ export const defaultResponses = {
   },
 };
 
-export const forbiddenResponse = {
+export const forbiddenResponse: ResponsesWithResolver = {
   403: {
     description: "Forbidden - Key doesn't have required scope/permission",
     content: {
@@ -48,7 +48,7 @@ export const forbiddenResponse = {
   },
 };
 
-export const notFoundResponse = {
+export const notFoundResponse: ResponsesWithResolver = {
   404: {
     description: "Not Found - Resource doesn't exist",
     content: {
@@ -57,7 +57,7 @@ export const notFoundResponse = {
   },
 };
 
-export const conflictResponse = {
+export const conflictResponse: ResponsesWithResolver = {
   409: {
     description: "Conflict - Resource already exists",
     content: {

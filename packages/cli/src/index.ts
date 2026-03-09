@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { runInit } from "./commands/init.js";
+import { runInit, killActiveChild } from "./commands/init.js";
 import { runLogin } from "./commands/login.js";
 import { runDevServer, runDevInit } from "./commands/dev.js";
 import {
@@ -354,6 +354,18 @@ function handleError(err: unknown) {
   }
   process.exit(1);
 }
+
+// Clean exit on Ctrl+C.
+//
+// When run via `pnpm kfl …`, pnpm/tsx intercept SIGINT before our
+// process.on("SIGINT") handler ever fires. Work around this by killing
+// active child processes directly.
+process.on("SIGINT", () => {
+  killActiveChild();
+  // Show cursor (ora hides it)
+  process.stderr.write("\x1B[?25h");
+  process.exit(130);
+});
 
 // Show help (exit 0) when no arguments are provided
 if (process.argv.length <= 2) {
