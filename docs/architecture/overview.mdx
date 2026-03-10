@@ -1,6 +1,6 @@
 ---
-title: Architecture Overview
-description: How Keyflare works under the hood
+title: "Architecture Overview"
+description: "How Keyflare works under the hood"
 sidebar_position: 1
 ---
 
@@ -102,6 +102,7 @@ Key-value pairs stored per environment. Both key names and values are encrypted 
 ### API Keys
 
 Two types:
+
 - **User keys** (`kfl_user_*`) — Full admin access
 - **System keys** (`kfl_sys_*`) — Scoped to specific project:environment pairs
 
@@ -135,9 +136,31 @@ sequenceDiagram
     CLI->>CLI: 10. Output as .env / JSON / inject
 ```
 
+## `kfl init` flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI as kfl init
+    participant CF as Cloudflare
+    participant Worker as Keyflare Worker
+    participant D1 as D1 Database
+
+    User->>CLI: kfl init
+    CLI->>CF: Authenticate (OAuth/Token)
+    CF-->>CLI: Auth confirmed
+    CLI->>Worker: Deploy Worker
+    CLI->>D1: Create database
+    CLI->>Worker: Set MASTER_KEY secret
+    CLI->>D1: Apply migrations
+    CLI->>Worker: POST /bootstrap
+    Worker-->>CLI: Return root API key
+    CLI-->>User: Display keys & save config
+```
+
 ## Monorepo Structure
 
-```
+```text
 keyflare/
 ├── packages/
 │   ├── server/    # Cloudflare Worker
@@ -165,7 +188,7 @@ keyflare/
 
 When published, the `@keyflare/cli` package bundles the server code:
 
-```
+```text
 @keyflare/cli/
 ├── dist/
 │   ├── index.js              # Bundled CLI
@@ -180,27 +203,26 @@ This allows `kfl init` to deploy the Worker without requiring users to clone the
 
 ## Technology Stack
 
-| Component | Technology | Rationale |
-|-----------|------------|-----------|
-| Web framework | Hono | Ultrafast, typed, Cloudflare-native |
-| Validation | Zod | Declarative schemas with type inference |
-| Runtime | Cloudflare Workers | Edge deployment, zero cold starts |
-| Database | Cloudflare D1 (SQLite) | Zero config, co-located with Worker |
-| Encryption | AES-256-GCM | Native Web Crypto API |
-| API key hashing | SHA-256 | Fast, native, sufficient for 128-bit keys |
-| Lookup hashing | HMAC-SHA256 | Deterministic, keyed |
-| CLI framework | Commander.js | Mature, TypeScript-native |
-| ORM | Drizzle | Type-safe, generates migrations |
-| Build | tsup / wrangler | Fast bundling |
+| Component       | Technology             | Rationale                                 |
+| --------------- | ---------------------- | ----------------------------------------- |
+| Web framework   | Hono                   | Ultrafast, typed, Cloudflare-native       |
+| Validation      | Zod                    | Declarative schemas with type inference   |
+| Runtime         | Cloudflare Workers     | Edge deployment, zero cold starts         |
+| Database        | Cloudflare D1 (SQLite) | Zero config, co-located with Worker       |
+| Encryption      | AES-256-GCM            | Native Web Crypto API                     |
+| API key hashing | SHA-256                | Fast, native, sufficient for 128-bit keys |
+| Lookup hashing  | HMAC-SHA256            | Deterministic, keyed                      |
+| CLI framework   | Commander.js           | Mature, TypeScript-native                 |
+| ORM             | Drizzle                | Type-safe, generates migrations           |
+| Build           | tsup / wrangler        | Fast bundling                             |
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Security Model" href="/architecture/security">
+  <Card href="/architecture/security" title="Security Model">
     Learn about encryption and threat mitigation.
   </Card>
-
-  <Card title="Encryption" href="/architecture/encryption">
+  <Card href="/architecture/encryption" title="Encryption">
     Deep dive into the crypto implementation.
   </Card>
 </CardGroup>

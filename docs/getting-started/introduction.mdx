@@ -1,8 +1,12 @@
 ---
-title: Introduction
-description: Open-source secrets manager built entirely on Cloudflare
+title: "Introduction"
+description: "Open-source secrets manager built entirely on Cloudflare"
 sidebar_position: 1
 ---
+
+<Frame>
+  ![Logo Landscape](/assets/logo-landscape.png)
+</Frame>
 
 # Keyflare
 
@@ -10,24 +14,21 @@ sidebar_position: 1
 
 Single Worker + single D1 database + single master key. Zero trust storage. Self-hosted in one click.
 
-Think of it as a self-hosted Doppler or Infisical — but runs entirely on Cloudflare with zero infrastructure to manage.
+Think of it as a self-hosted [Doppler](https://www.doppler.com/) or [Infisical](https://infisical.com/) — but runs entirely on Cloudflare with zero infrastructure to manage.
 
 ## Why Keyflare?
 
 <CardGroup cols={2}>
-  <Card title="Open Source" icon="fire">
+  <Card icon="fire" title="Free + Open Source">
     MIT licensed. No restrictions, no lock-in. Own your secrets infrastructure completely.
   </Card>
-
-  <Card title="Self-Hosted" icon="server">
-    Deploy to your own Cloudflare account in seconds. All you need is a free Cloudflare account.
+  <Card icon="server" title="Self-Hosted">
+    Deploy to your own Cloudflare account in seconds. All you need is a **free Cloudflare account**.
   </Card>
-
-  <Card title="Simple Architecture" icon="cube">
+  <Card icon="cube" title="Simple Architecture + One-Click install">
     One Worker, one D1 database, one master key. No containers, no VMs, no Kubernetes.
   </Card>
-
-  <Card title="Zero Trust Storage" icon="lock">
+  <Card icon="lock" title="Zero Trust Storage">
     Secret values and keys are AES-256-GCM encrypted at rest. Even with database access, data remains protected.
   </Card>
 </CardGroup>
@@ -36,7 +37,7 @@ Think of it as a self-hosted Doppler or Infisical — but runs entirely on Cloud
 
 Keyflare uses a simple mental model: **Projects → Environments → Secrets**.
 
-```
+```text
 Project (my-api)
 ├── Environment (development)
 │   ├── DATABASE_URL=postgres://...
@@ -65,11 +66,11 @@ Key-value pairs stored per environment. Both key names and values are encrypted 
 
 Keyflare uses API keys for authentication. There are two types:
 
-| | User Key | System Key |
-|---|---|---|
-| **Prefix** | `kfl_user_*` | `kfl_sys_*` |
-| **Access** | Full admin (all projects, keys, settings) | Scoped to specific project:environment |
-| **Use for** | Developers, admins, backup keys | CI/CD, deployment scripts, runtime services |
+|             | User Key                                  | System Key                                  |
+| ----------- | ----------------------------------------- | ------------------------------------------- |
+| **Prefix**  | `kfl_user_*`                              | `kfl_sys_*`                                 |
+| **Access**  | Full admin (all projects, keys, settings) | Scoped to specific project:environment      |
+| **Use for** | Developers, admins, backup keys           | CI/CD, deployment scripts, runtime services |
 
 **User keys** have full unrestricted access to everything — projects, environments, secrets, and API key management.
 
@@ -98,11 +99,10 @@ graph TB
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" href="/getting-started/quickstart">
+  <Card href="/getting-started/quickstart" title="Quick Start">
     Deploy Keyflare to your Cloudflare account in minutes.
   </Card>
-
-  <Card title="Requirements" href="/getting-started/requirements">
+  <Card href="/getting-started/requirements" title="Requirements">
     What you need before getting started.
   </Card>
 </CardGroup>

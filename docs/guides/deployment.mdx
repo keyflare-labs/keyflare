@@ -91,35 +91,6 @@ graph TB
 
 **Total infrastructure:** 1 Worker + 1 D1 database + 1 secret
 
-## Updates
-
-To update your deployment:
-
-```bash
-# Update the CLI
-npm install -g @keyflare/cli@latest
-
-# Redeploy (idempotent)
-kfl init
-
-# For a custom-named instance
-kfl init --name keyflare-prod
-```
-
-`kfl init` is idempotent. Re-running it:
-- Redeploys the Worker
-- Keeps the existing `MASTER_KEY` unchanged
-- Runs pending migrations
-- Safely re-calls bootstrap (no-op if already initialized)
-
-<Note>
-  Deleting the Worker does NOT delete the D1 database. To delete everything:
-  ```bash
-  wrangler d1 delete keyflare        # default name
-  wrangler d1 delete keyflare-prod   # custom name
-  ```
-</Note>
-
 ## Custom Domains
 
 Add a custom domain to your Worker:

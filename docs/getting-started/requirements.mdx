@@ -1,7 +1,8 @@
 ---
-title: Requirements
-description: Prerequisites for using Keyflare
+title: "Requirements"
+description: "Prerequisites for using Keyflare"
 sidebar_position: 3
+hidden: true
 ---
 
 # Requirements
@@ -12,30 +13,30 @@ Everything you need to run Keyflare.
 
 To deploy Keyflare to Cloudflare, you need:
 
-| Requirement | Details |
-|-------------|---------|
-| **Node.js** | Version 20 or higher |
+| Requirement            | Details                   |
+| ---------------------- | ------------------------- |
+| **Node.js**            | Version 20 or higher      |
 | **Cloudflare Account** | Free tier works perfectly |
-| **pnpm** (optional) | For building from source |
+| **pnpm** (optional)    | For building from source  |
 
 ### Cloudflare Permissions
 
 Your Cloudflare account needs these permissions:
 
-| Permission | Purpose |
-|------------|---------|
-| `Workers Scripts:Edit` | Deploy and manage the Worker |
-| `D1:Edit` | Create and manage the database |
-| `Workers Routes:Edit` | Configure custom domains (optional) |
+| Permission             | Purpose                             |
+| ---------------------- | ----------------------------------- |
+| `Workers Scripts:Edit` | Deploy and manage the Worker        |
+| `D1:Edit`              | Create and manage the database      |
+| `Workers Routes:Edit`  | Configure custom domains (optional) |
 
 ## For Local Development
 
 For local development, you only need:
 
-| Requirement | Details |
-|-------------|---------|
+| Requirement | Details              |
+| ----------- | -------------------- |
 | **Node.js** | Version 20 or higher |
-| **pnpm** | Version 9 or higher |
+| **pnpm**    | Version 9 or higher  |
 
 No Cloudflare account is required for local development. Everything runs locally via Miniflare.
 
@@ -51,13 +52,13 @@ corepack enable
 
 Keyflare works great on the free tier:
 
-| Resource | Free Tier Limit | Notes |
-|----------|-----------------|-------|
-| Worker requests | 100,000/day | Per-request billing on paid |
-| D1 storage | 5 GB | Per database |
-| D1 rows read | 5,000,000/day | |
-| D1 rows written | 100,000/day | |
-| Worker CPU time | 10ms | Crypto ops are fast (< 1ms) |
+| Resource        | Free Tier Limit | Notes                        |
+| --------------- | --------------- | ---------------------------- |
+| Worker requests | 100,000/day     | Per-request billing on paid  |
+| D1 storage      | 5 GB            | Per database                 |
+| D1 rows read    | 5,000,000/day   |                              |
+| D1 rows written | 100,000/day     |                              |
+| Worker CPU time | 10ms            | Crypto ops are fast (\< 1ms) |
 
 <Note>
   For most teams, the free tier is more than sufficient. Paid plans offer higher limits and additional features.
@@ -67,13 +68,14 @@ Keyflare works great on the free tier:
 
 After deployment, the CLI stores configuration in:
 
-```
+```text
 ~/.config/keyflare/
 ├── config.yaml      # Default settings
 └── credentials      # API key (file permissions 0600)
 ```
 
 **config.yaml:**
+
 ```yaml
 api_url: "https://keyflare.<account>.workers.dev"
 project: "my-api"          # Default project (optional)
@@ -81,7 +83,8 @@ environment: "development"  # Default environment (optional)
 ```
 
 **credentials:**
-```
+
+```text
 kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
 ```
 
@@ -89,24 +92,23 @@ kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
 
 Override CLI configuration with environment variables:
 
-| Variable | Description |
-|----------|-------------|
-| `KEYFLARE_API_KEY` | API key (overrides credentials file) |
-| `KEYFLARE_API_URL` | API URL (overrides config file) |
-| `KEYFLARE_LOCAL` | Set to `true` to target `http://localhost:8787` |
-| `KEYFLARE_PROJECT` | Default project (overrides config file) |
-| `KEYFLARE_CONFIG` | Default environment (overrides config file) |
-| `CLOUDFLARE_API_TOKEN` | Used by `kfl init` (skips auth prompt) |
-| `DEBUG` | Set to `keyflare` for CLI debug logs |
+| Variable               | Description                                     |
+| ---------------------- | ----------------------------------------------- |
+| `KEYFLARE_API_KEY`     | API key (overrides credentials file)            |
+| `KEYFLARE_API_URL`     | API URL (overrides config file)                 |
+| `KEYFLARE_LOCAL`       | Set to `true` to target `http://localhost:8787` |
+| `KEYFLARE_PROJECT`     | Default project (overrides config file)         |
+| `KEYFLARE_CONFIG`      | Default environment (overrides config file)     |
+| `CLOUDFLARE_API_TOKEN` | Used by `kfl init` (skips auth prompt)          |
+| `DEBUG`                | Set to `keyflare` for CLI debug logs            |
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" href="/getting-started/quickstart">
+  <Card href="/getting-started/quickstart" title="Quick Start">
     Deploy Keyflare to your Cloudflare account.
   </Card>
-
-  <Card title="Architecture" href="/architecture/overview">
+  <Card href="/architecture/overview" title="Architecture">
     Learn how Keyflare works under the hood.
   </Card>
 </CardGroup>

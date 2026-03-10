@@ -1,0 +1,17 @@
+---
+title: "Custom Master Key"
+---
+
+For compliance or backup purposes, you can provide your own master key:
+
+```bash
+# Generate a key
+openssl rand -base64 32
+
+# Use during init
+kfl init --master-key "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols="
+```
+
+<Note>
+  If `MASTER_KEY` already exists on the worker, the provided key is ignored. This prevents accidental data loss from key rotation.
+</Note>

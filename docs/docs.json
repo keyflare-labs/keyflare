@@ -45,8 +45,15 @@
               "guides/projects",
               "guides/secrets",
               "guides/api-keys",
-              "guides/local-development",
-              "guides/deployment"
+              "guides/updating-keyflare",
+              {
+                "group": "Advanced",
+                "pages": [
+                  "custom-master-key",
+                  "guides/local-development",
+                  "guides/deployment"
+                ]
+              }
             ]
           },
           {
