@@ -38,7 +38,27 @@ jobs:
           npm pkg set version="$VERSION"
         working-directory: packages/cli
 
+      - name: Detect dist tag
+        id: dist-tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if [[ "$VERSION" == *-* ]]; then
+            # Extract the pre-release identifier (e.g. "beta1" from "0.0.3-beta1", "rc1" from "0.0.3-rc1")
+            PRERELEASE="${VERSION#*-}"
+            # Strip trailing digits to get the tag name (e.g. "beta", "rc")
+            TAG=$(echo "$PRERELEASE" | sed 's/[0-9]*$//' | sed 's/\.$//')
+            # Fallback to "next" if tag is empty
+            TAG=${TAG:-next}
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "Detected pre-release: publishing with --tag $TAG"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "Stable release: publishing with --tag latest"
+          fi
+
       - name: Publish CLI to npm
-        run: pnpm publish packages/cli --no-git-checks --access public 
+        run: pnpm publish packages/cli --no-git-checks --access public --tag ${{ steps.dist-tag.outputs.tag }}
         # TODO: enable this once the repo is public
         # --provenance
