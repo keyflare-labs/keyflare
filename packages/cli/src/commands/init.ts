@@ -475,7 +475,7 @@ function buildEphemeralConfig(databaseId: string): string {
 
 // ─── kfl init (remote deploy) ─────────────────────────────────
 
-export async function runInit(options: { force?: boolean; masterKey?: string }) {
+export async function runInit(options: { force?: boolean; yes?: boolean; masterKey?: string }) {
   debug("runInit called force=%s masterKeyProvided=%s", Boolean(options.force), Boolean(options.masterKey));
   log(bold("\n🔥 Keyflare — Initial Setup\n"));
 
@@ -701,7 +701,9 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
           "everything with a new key.\n"
       )
     );
-    await confirm({ message: "I have saved the master key", default: false });
+    if (!options.yes) {
+      await confirm({ message: "I have saved the master key", default: false });
+    }
   } else {
     log(dim("MASTER_KEY already exists on the worker and was left unchanged.\n"));
   }

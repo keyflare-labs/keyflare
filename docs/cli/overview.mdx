@@ -37,12 +37,13 @@ npx @keyflare/cli <command>
 Deploy or update Keyflare on your Cloudflare account.
 
 ```bash
-kfl init [--force] [--master-key <key>]
+kfl init [--force] [-y] [--master-key <key>]
 ```
 
 | Flag | Description |
 |------|-------------|
 | `--force` | Reserved for compatibility (currently no-op) |
+| `-y, --yes` | Skip confirmation prompts (auto-accept) |
 | `--master-key <key>` | Custom master key (base64-encoded 256-bit) |
 
 **Authentication:**

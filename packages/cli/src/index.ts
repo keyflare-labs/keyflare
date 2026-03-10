@@ -61,6 +61,7 @@ program
       "Supports OAuth (browser) and API token authentication."
   )
   .option("--force", "Re-run even if already initialised")
+  .option("-y, --yes", "Skip confirmation prompts (auto-accept)")
   .option(
     "--master-key <key>",
     "Custom master key (base64-encoded 256-bit key). If not provided, a random key is generated. " +
