@@ -467,6 +467,16 @@ function buildEphemeralConfig(databaseId: string): string {
   // wrangler resolves it correctly when -c points at a file in os.tmpdir().
   databases[0].migrations_dir = path.join(serverDir(), String(databases[0].migrations_dir ?? "migrations"));
 
+  // Make alias paths absolute so they resolve correctly from the temp file location.
+  const alias = config.alias as Record<string, string> | undefined;
+  if (alias) {
+    for (const [key, value] of Object.entries(alias)) {
+      if (!path.isAbsolute(value)) {
+        alias[key] = path.join(serverDir(), value);
+      }
+    }
+  }
+
   const tmpPath = path.join(os.tmpdir(), `keyflare-wrangler-${Date.now()}.json`);
   fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
   debug("ephemeral config written to %s", tmpPath);

@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 .wrangler/
+*.tgz
 
 # Environment files
 .env

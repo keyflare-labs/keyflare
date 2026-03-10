@@ -44,17 +44,17 @@ for (const file of serverFilesToCopy) {
   }
 }
 
-const serverPackageJsonPath = path.join(serverDest, "package.json");
-const serverPackageJson = JSON.parse(fs.readFileSync(serverPackageJsonPath, "utf-8"));
-serverPackageJson.dependencies["@keyflare/shared"] = "file:../shared";
-fs.writeFileSync(serverPackageJsonPath, JSON.stringify(serverPackageJson, null, 2));
-console.log("Updated server/package.json to use local @keyflare/shared");
-
+// Generate wrangler.jsonc with top-level alias to resolve @keyflare/shared
+// via esbuild during bundling. The alias path is relative to the server dir
+// (wrangler runs with cwd = serverDir).
 const wranglerConfig = {
   name: "keyflare",
   main: "src/index.ts",
   compatibility_date: "2026-03-07",
   compatibility_flags: ["nodejs_compat"],
+  alias: {
+    "@keyflare/shared": "../shared/dist/index.js",
+  },
   observability: {
     enabled: true,
     logs: {
@@ -66,17 +66,6 @@ const wranglerConfig = {
       binding: "DB_BINDING",
       database_name: "keyflare",
       migrations_dir: "migrations",
-    },
-  ],
-  rules: [
-    {
-      type: "ESModule",
-      globs: ["**/*.ts"],
-      esbuild: {
-        alias: {
-          "@keyflare/shared": "../shared/dist/index.js",
-        },
-      },
     },
   ],
 };
