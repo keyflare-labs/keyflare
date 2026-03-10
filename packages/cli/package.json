@@ -11,21 +11,28 @@
   ],
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsup",
-    "build:fast": "tsup --no-dts",
+    "build": "tsup && tsx scripts/copy-server.ts",
+    "build:fast": "tsup --no-dts && tsx scripts/copy-server.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "oxlint src/"
   },
   "dependencies": {
+    "@hono/standard-validator": "^0.2.2",
+    "@hono/zod-validator": "^0.7.4",
     "@inquirer/prompts": "^8.3.0",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "debug": "^4.4.3",
     "dotenv": "^17.3.1",
-    "hono": "^4.12.5",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.6.0",
+    "hono-openapi": "^1.3.0",
     "open": "^11.0.0",
-    "ora": "^9.3.0"
+    "ora": "^9.3.0",
+    "wrangler": "^4.71.0",
+    "zod": "^3.25.76",
+    "zod-openapi": "^5.4.6"
   },
   "devDependencies": {
     "@keyflare/shared": "workspace:*",

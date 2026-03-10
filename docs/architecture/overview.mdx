@@ -161,6 +161,23 @@ keyflare/
 └── package.json   # Root package
 ```
 
+### NPM Package Bundling
+
+When published, the `@keyflare/cli` package bundles the server code:
+
+```
+@keyflare/cli/
+├── dist/
+│   ├── index.js              # Bundled CLI
+│   └── server/               # Bundled server (for wrangler deploy)
+│       ├── src/
+│       ├── migrations/
+│       ├── wrangler.jsonc
+│       └── package.json
+```
+
+This allows `kfl init` to deploy the Worker without requiring users to clone the repository.
+
 ## Technology Stack
 
 | Component | Technology | Rationale |

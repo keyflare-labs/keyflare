@@ -176,9 +176,17 @@ function checkWranglerOAuthSession(): boolean {
 /** Path to packages/server relative to this compiled CLI file */
 function serverDir(): string {
   const here = new URL(".", import.meta.url).pathname;
-  // When built: packages/cli/dist/commands/init.js → ../../../server
-  // When running via tsx: packages/cli/src/commands/init.ts → ../../../server
-  return path.resolve(here, "../../../server");
+  // When published: dist/index.js → ./server (bundled in dist)
+  // When running via tsx: packages/cli/src/commands/init.ts → ../../../server (monorepo)
+  const publishedPath = path.resolve(here, "server");
+  const devPath = path.resolve(here, "../../../server");
+
+  if (fs.existsSync(path.join(publishedPath, "wrangler.jsonc"))) {
+    debug("serverDir resolved to published path: %s", publishedPath);
+    return publishedPath;
+  }
+  debug("serverDir resolved to dev path: %s", devPath);
+  return devPath;
 }
 
 /**
@@ -186,14 +194,24 @@ function serverDir(): string {
  * adds intermediate processes that swallow SIGINT.
  */
 function wranglerBin(): string {
-  // wrangler is a dependency of @keyflare/server
-  const binPath = path.join(serverDir(), "node_modules", ".bin", "wrangler");
-  if (fs.existsSync(binPath)) {
-    debug("resolved wrangler binary: %s", binPath);
-    return binPath;
+  const here = new URL(".", import.meta.url).pathname;
+
+  // When published: wrangler is in CLI's node_modules (sibling to dist/)
+  const publishedBinPath = path.join(here, "..", "node_modules", ".bin", "wrangler");
+  if (fs.existsSync(publishedBinPath)) {
+    debug("resolved wrangler binary (published): %s", publishedBinPath);
+    return publishedBinPath;
   }
+
+  // When in dev monorepo: wrangler is in server's node_modules
+  const serverBinPath = path.join(serverDir(), "node_modules", ".bin", "wrangler");
+  if (fs.existsSync(serverBinPath)) {
+    debug("resolved wrangler binary (dev): %s", serverBinPath);
+    return serverBinPath;
+  }
+
   // Fallback: let PATH resolution find it
-  debug("wrangler binary not found at %s, falling back to PATH", binPath);
+  debug("wrangler binary not found, falling back to PATH");
   return "wrangler";
 }
 
