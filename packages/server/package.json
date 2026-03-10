@@ -18,7 +18,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply keyflare --remote",
     "deploy": "wrangler deploy && pnpm run db:migrations:apply",
     "db:migrations:apply": "wrangler d1 migrations apply keyflare --remote",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "generate:openapi": "npx tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@hono/standard-validator": "^0.2.2",
@@ -28,7 +29,7 @@
     "hono": "^4.6.0",
     "hono-openapi": "^1.3.0",
     "zod": "^3.25.76",
-    "zod-openapi": "^5.4.6"
+    "zod-openapi": "^4.2.4"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.12.19",

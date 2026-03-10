@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { describeRoute, resolver, type ResponsesWithResolver } from "hono-openapi";
 import {
   errorResponseSchema,
@@ -13,6 +12,7 @@ import {
   deleteProjectResponseSchema,
   createConfigResponseSchema,
   listConfigsResponseSchema,
+  deleteConfigResponseSchema,
   getSecretsResponseSchema,
   setSecretsResponseSchema,
   patchSecretsResponseSchema,
@@ -69,6 +69,7 @@ export const conflictResponse: ResponsesWithResolver = {
 export const describeHealthRoute = () =>
   describeRoute({
     description: "Check server health and version",
+    tags: ["Health"],
     responses: {
       200: {
         description: "Server is healthy",
@@ -83,6 +84,7 @@ export const describeBootstrapRoute = () =>
   describeRoute({
     description:
       "Create the first user API key. Only works when no keys exist in the database.",
+    tags: ["Bootstrap"],
     responses: {
       201: {
         description: "Bootstrap successful - First user key created",
@@ -99,9 +101,26 @@ export const describeBootstrapRoute = () =>
     },
   });
 
+export const describeListKeysRoute = () =>
+  describeRoute({
+    description: "List all API keys with their metadata",
+    tags: ["Keys"],
+    responses: {
+      200: {
+        description: "List of API keys",
+        content: {
+          "application/json": { schema: resolver(listKeysResponseSchema) },
+        },
+      },
+      ...defaultResponses,
+    },
+  });
+
 export const describeCreateKeyRoute = () =>
   describeRoute({
-    description: "Create a new API key (user or system type)",
+    description:
+      "Create a new API key (user or system type). System keys require scopes and permission.",
+    tags: ["Keys"],
     responses: {
       201: {
         description: "Key created successfully",
@@ -114,24 +133,10 @@ export const describeCreateKeyRoute = () =>
     },
   });
 
-export const describeListKeysRoute = () =>
-  describeRoute({
-    description: "List all API keys with their metadata",
-    responses: {
-      200: {
-        description: "List of API keys",
-        content: {
-          "application/json": { schema: resolver(listKeysResponseSchema) },
-        },
-      },
-      ...defaultResponses,
-      ...forbiddenResponse,
-    },
-  });
-
 export const describeRevokeKeyRoute = () =>
   describeRoute({
     description: "Revoke an API key by its prefix",
+    tags: ["Keys"],
     responses: {
       200: {
         description: "Key revoked successfully",
@@ -149,6 +154,7 @@ export const describeUpdateKeyRoute = () =>
   describeRoute({
     description:
       "Update a system key's scopes and permission. Replaces all existing scopes.",
+    tags: ["Keys"],
     responses: {
       200: {
         description: "Key updated successfully",
@@ -162,10 +168,29 @@ export const describeUpdateKeyRoute = () =>
     },
   });
 
+export const describeListProjectsRoute = () =>
+  describeRoute({
+    description:
+      "List all projects. System keys only see projects within their scope.",
+    tags: ["Projects"],
+    responses: {
+      200: {
+        description: "List of projects",
+        content: {
+          "application/json": {
+            schema: resolver(listProjectsResponseSchema),
+          },
+        },
+      },
+      ...defaultResponses,
+    },
+  });
+
 export const describeCreateProjectRoute = () =>
   describeRoute({
     description:
       "Create a new project. Creates Dev and Prod environments by default unless environmentless is true.",
+    tags: ["Projects"],
     responses: {
       201: {
         description: "Project created successfully",
@@ -181,26 +206,10 @@ export const describeCreateProjectRoute = () =>
     },
   });
 
-export const describeListProjectsRoute = () =>
-  describeRoute({
-    description:
-      "List all projects. System keys only see projects within their scope.",
-    responses: {
-      200: {
-        description: "List of projects",
-        content: {
-          "application/json": {
-            schema: resolver(listProjectsResponseSchema),
-          },
-        },
-      },
-      ...defaultResponses,
-    },
-  });
-
 export const describeDeleteProjectRoute = () =>
   describeRoute({
     description: "Delete a project and all its environments and secrets",
+    tags: ["Projects"],
     responses: {
       200: {
         description: "Project deleted successfully",
@@ -216,9 +225,27 @@ export const describeDeleteProjectRoute = () =>
     },
   });
 
+export const describeListConfigsRoute = () =>
+  describeRoute({
+    description:
+      "List all configs/environments in a project. System keys only see configs within their scope.",
+    tags: ["Configs"],
+    responses: {
+      200: {
+        description: "List of configs",
+        content: {
+          "application/json": { schema: resolver(listConfigsResponseSchema) },
+        },
+      },
+      ...defaultResponses,
+      ...notFoundResponse,
+    },
+  });
+
 export const describeCreateConfigRoute = () =>
   describeRoute({
     description: "Create a new environment/config within a project",
+    tags: ["Configs"],
     responses: {
       201: {
         description: "Config created successfully",
@@ -233,40 +260,16 @@ export const describeCreateConfigRoute = () =>
     },
   });
 
-export const describeListConfigsRoute = () =>
-  describeRoute({
-    description:
-      "List all configs/environments in a project. System keys only see configs within their scope.",
-    responses: {
-      200: {
-        description: "List of configs",
-        content: {
-          "application/json": { schema: resolver(listConfigsResponseSchema) },
-        },
-      },
-      ...defaultResponses,
-      ...notFoundResponse,
-    },
-  });
-
 export const describeDeleteConfigRoute = () =>
   describeRoute({
     description: "Delete an environment/config and all its secrets",
+    tags: ["Configs"],
     responses: {
       200: {
         description: "Config deleted successfully",
         content: {
           "application/json": {
-            schema: resolver(
-              z.object({
-                ok: z.literal(true),
-                data: z.object({
-                  deleted: z.string(),
-                  project: z.string(),
-                  secrets_removed: z.number(),
-                }),
-              })
-            ),
+            schema: resolver(deleteConfigResponseSchema),
           },
         },
       },
@@ -280,6 +283,7 @@ export const describeGetSecretsRoute = () =>
   describeRoute({
     description:
       "Get all secrets for a config. Returns decrypted key-value pairs.",
+    tags: ["Secrets"],
     responses: {
       200: {
         description: "Secrets retrieved successfully",
@@ -297,6 +301,7 @@ export const describeSetSecretsRoute = () =>
   describeRoute({
     description:
       "Set all secrets for a config (full override). Deletes all existing secrets first!",
+    tags: ["Secrets"],
     responses: {
       200: {
         description: "Secrets set successfully",
@@ -314,6 +319,7 @@ export const describePatchSecretsRoute = () =>
   describeRoute({
     description:
       "Partially update secrets - set new/updated keys and/or delete specific keys",
+    tags: ["Secrets"],
     responses: {
       200: {
         description: "Secrets patched successfully",
