@@ -37,7 +37,7 @@ npx @keyflare/cli <command>
 Deploy or update Keyflare on your Cloudflare account.
 
 ```bash
-kfl init [--force] [-y] [--name <name>] [--master-key <key>]
+kfl init [--force] [-y] [--name <name>] [--d1id <uuid>] [--master-key <key>]
 ```
 
 | Flag | Description |
@@ -45,6 +45,7 @@ kfl init [--force] [-y] [--name <name>] [--master-key <key>]
 | `--force` | Reserved for compatibility (currently no-op) |
 | `-y, --yes` | Skip confirmation prompts (auto-accept) |
 | `--name <name>` | Worker and database name (default: `keyflare`). Must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 63 characters or less. |
+| `--d1id <uuid>` | Bind to an existing D1 database by UUID. Creates new DB if not provided (or uses the existing binding if a worker exists already). |
 | `--master-key <key>` | Custom master key (base64-encoded 256-bit) |
 
 **Authentication:**
@@ -60,6 +61,16 @@ You can deploy multiple Keyflare instances by using different names:
 kfl init --name keyflare-prod
 kfl init --name keyflare-staging
 ```
+
+**Using an Existing D1 Database:**
+
+To bind Keyflare to an existing D1 database (e.g., for migration or disaster recovery):
+
+```bash
+kfl init --d1id 12345678-1234-1234-1234-123456789abc
+```
+
+This skips database creation and binds the worker to the specified database. Migrations will run against it on first deploy.
 
 ---
 

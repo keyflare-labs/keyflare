@@ -105,6 +105,25 @@ function validateName(name: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
+function validateD1Id(id: string): { valid: boolean; error?: string } {
+  debug("validating D1 ID: %s", id);
+  if (!id || typeof id !== "string") {
+    return { valid: false, error: "D1 ID is required" };
+  }
+
+  const trimmed = id.trim();
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(trimmed)) {
+    return {
+      valid: false,
+      error:
+        "D1 ID must be a valid UUID (e.g., 12345678-1234-1234-1234-123456789abc)",
+    };
+  }
+
+  return { valid: true };
+}
+
 // ─── Auth helpers ─────────────────────────────────────────────
 
 /**
@@ -532,12 +551,14 @@ export async function runInit(options: {
   force?: boolean;
   yes?: boolean;
   name?: string;
+  d1id?: string;
   masterKey?: string;
 }) {
   debug(
-    "runInit called force=%s name=%s masterKeyProvided=%s",
+    "runInit called force=%s name=%s d1id=%s masterKeyProvided=%s",
     Boolean(options.force),
     options.name ?? DEFAULT_NAME,
+    options.d1id ?? "<auto>",
     Boolean(options.masterKey)
   );
   log(bold("\n🔥 Keyflare — Initial Setup\n"));
@@ -554,6 +575,19 @@ export async function runInit(options: {
     if (name !== DEFAULT_NAME) {
       log(dim(`Using name: ${name}\n`));
     }
+  }
+
+  // Validate D1 ID if provided
+  let providedD1Id: string | undefined;
+  if (options.d1id) {
+    const validation = validateD1Id(options.d1id);
+    if (!validation.valid) {
+      error(`Invalid D1 ID: ${validation.error}`);
+      process.exit(1);
+    }
+    providedD1Id = options.d1id.trim();
+    debug("using provided D1 ID: %s", providedD1Id);
+    log(dim(`Using existing D1 database: ${providedD1Id}\n`));
   }
 
   // Validate custom master key if provided
@@ -607,21 +641,18 @@ export async function runInit(options: {
 
   // ── Step 3: Deploy the worker
   //
-  // When using a custom name, we need to build an ephemeral config with the
-  // custom name before deploying. For the default name, we can deploy directly
-  // with wrangler.jsonc and resolve the database_id after.
+  // When using a custom name or provided D1 ID, we need to build an ephemeral
+  // config before deploying. For the default name without D1 ID, we can deploy
+  // directly with wrangler.jsonc and resolve the database_id after.
   //
-  // On first deploy the worker doesn't exist yet, so we deploy first with the
-  // base config (no database_id), then resolve the ID from the live bindings.
-  // On re-runs we can resolve before deploying, but deploying first is simpler
-  // and fully idempotent either way.
+  // When --d1id is provided, we bind to an existing database and skip the
+  // resolve step. Otherwise, Cloudflare creates a new database on first deploy.
 
-  let databaseId: string | undefined;
+  let databaseId: string | undefined = providedD1Id;
   let ephemeralConfigPath: string | undefined;
 
-  // If using a custom name, we need to build the ephemeral config before deploy
-  if (name !== DEFAULT_NAME) {
-    // For custom names, build config without database_id first (will be resolved after deploy)
+  // Build ephemeral config if we need custom name or have a provided D1 ID
+  if (name !== DEFAULT_NAME || providedD1Id) {
     const tmpPath = path.join(os.tmpdir(), `keyflare-wrangler-${Date.now()}.json`);
     const configPath = path.join(serverDir(), "wrangler.jsonc");
     const raw = fs.readFileSync(configPath, "utf-8");
@@ -637,6 +668,9 @@ export async function runInit(options: {
     const databases = config.d1_databases as Array<Record<string, unknown>>;
     if (Array.isArray(databases) && databases.length > 0) {
       databases[0].database_name = name;
+      if (providedD1Id) {
+        databases[0].database_id = providedD1Id;
+      }
       databases[0].migrations_dir = path.join(
         serverDir(),
         String(databases[0].migrations_dir ?? "migrations")
@@ -644,7 +678,12 @@ export async function runInit(options: {
     }
     fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
     ephemeralConfigPath = tmpPath;
-    debug("ephemeral config for custom name written to %s", tmpPath);
+    debug(
+      "ephemeral config written to %s (name=%s, d1id=%s)",
+      tmpPath,
+      name,
+      providedD1Id ?? "<auto>"
+    );
   }
 
   // Deploy the worker
@@ -668,28 +707,29 @@ export async function runInit(options: {
     process.exit(1);
   }
 
-  // Resolve database_id from the live worker bindings.
+  // Resolve database_id from the live worker bindings (unless provided via --d1id).
   // Always reads from Cloudflare — local wrangler.jsonc cannot be trusted
   // since another machine or team member may have redeployed.
-  const d1Spinner = ora("Resolving D1 database binding...").start();
-  try {
-    databaseId = await resolveD1DatabaseId(authEnv, name);
-    d1Spinner.succeed(`D1 database resolved (id: ${dim(databaseId)})`);
-  } catch (err: any) {
-    d1Spinner.fail(`Failed to resolve D1 database: ${err.message}`);
-    process.exit(1);
-  }
-
-  // Build or rebuild ephemeral config with the resolved database_id
-  if (ephemeralConfigPath) {
-    // Clean up the previous ephemeral config and rebuild with database_id
+  if (!providedD1Id) {
+    const d1Spinner = ora("Resolving D1 database binding...").start();
     try {
-      fs.unlinkSync(ephemeralConfigPath);
-    } catch {
-      /* ignore */
+      databaseId = await resolveD1DatabaseId(authEnv, name);
+      d1Spinner.succeed(`D1 database resolved (id: ${dim(databaseId)})`);
+    } catch (err: any) {
+      d1Spinner.fail(`Failed to resolve D1 database: ${err.message}`);
+      process.exit(1);
     }
+
+    // Build or rebuild ephemeral config with the resolved database_id
+    if (ephemeralConfigPath) {
+      try {
+        fs.unlinkSync(ephemeralConfigPath);
+      } catch {
+        /* ignore */
+      }
+    }
+    ephemeralConfigPath = buildEphemeralConfig(databaseId!, name);
   }
-  ephemeralConfigPath = buildEphemeralConfig(databaseId, name);
 
   // masterKeyToDisplay is set inside the try block below and read in the
   // summary block after — declared here so it survives the try/finally scope.
@@ -746,7 +786,7 @@ export async function runInit(options: {
     const migrateSpinner = ora("Running database migrations...").start();
     try {
       await wrangler(
-        ["d1", "migrations", "apply", name, "--remote", "-c", ephemeralConfigPath],
+        ["d1", "migrations", "apply", name, "--remote", "-c", ephemeralConfigPath!],
         authEnv,
         serverDir()
       );
