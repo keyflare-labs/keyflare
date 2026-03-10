@@ -1,5 +1,7 @@
 # 🔐 Keyflare
 
+![Cover](https://github.com/keyflare-labs/keyflare/blob/main/docs/assets/logo-landscape.png?raw=true)
+
 **Open-source secrets manager built entirely on Cloudflare.**
 
 One Worker. One D1 database. One master key. Zero trust storage.
