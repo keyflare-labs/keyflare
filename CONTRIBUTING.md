@@ -27,10 +27,10 @@ You can run a full local instance without a Cloudflare account:
 ```bash
 # One-time: generate local MASTER_KEY, apply migrations, bootstrap DB,
 # and save credentials for localhost:8787
-pnpm kfl dev init
+pnpm run dev:init
 
 # Start the local server (separate terminal)
-pnpm kfl dev server
+pnpm run dev:server
 # → Keyflare listening at http://localhost:8787
 
 # Point the CLI at the local server
@@ -38,7 +38,7 @@ export KEYFLARE_LOCAL=true
 export KEYFLARE_API_KEY=kfl_user_<key-printed-by-dev-init>
 ```
 
-Then use `pnpm kfl` for any CLI commands (e.g. `pnpm kfl projects list`, `pnpm kfl secrets set ...`). See [Development Guide](./docs/06-development.md#local-development-no-cloudflare-account) for the manual bootstrap alternative and what `kfl dev init` does under the hood.
+Then use `pnpm kfl` for any CLI commands (e.g. `pnpm kfl projects list`, `pnpm kfl secrets set ...`). See [Development Guide](./docs/contributing/development.mdx) for the manual bootstrap alternative and what `dev:init` does under the hood.
 
 ## Using the CLI during development
 

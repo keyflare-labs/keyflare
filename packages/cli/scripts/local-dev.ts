@@ -1,36 +1,30 @@
 /**
- * kfl dev — local development helpers
+ * Local development script for Keyflare contributors.
  *
- * `kfl dev server`  — starts wrangler dev locally (port 8787)
- * `kfl dev init`    — generates a local MASTER_KEY, applies migrations,
- *                     bootstraps, and saves credentials pointing at localhost
+ * Usage (from repo root):
+ *   pnpm run dev:init    — one-time setup (master key, migrations, bootstrap)
+ *   pnpm run dev:server  — start local server on port 8787
  *
  * No Cloudflare account needed. Everything runs via Miniflare/wrangler.
- *
- * Set KEYFLARE_LOCAL=true (or just use http://localhost as the API URL) to
- * activate local mode in other CLI commands.
  */
 
 import { spawnSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import ora from "ora";
 import type { BootstrapResponse } from "@keyflare/shared";
-import { api, KeyflareApiError } from "../api/client.js";
-import { writeConfig, writeApiKey } from "../config.js";
-import { makeDebug, redact } from "../debug.js";
-import { log, warn, success, bold, dim } from "../output/log.js";
+import { api, KeyflareApiError } from "../src/api/client.js";
+import { writeConfig, writeApiKey } from "../src/config.js";
+import { makeDebug, redact } from "../src/debug.js";
+import { log, warn, success, bold, dim } from "../src/output/log.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_API_URL = "http://localhost:8787";
-const debug = makeDebug("dev");
+const debug = makeDebug("local-dev");
 
-/** Path to packages/server relative to this compiled CLI file */
 function serverDir(): string {
-  // __dirname in ESM is not available, use import.meta.url
-  const here = new URL(".", import.meta.url).pathname;
-  // When built: packages/cli/dist/commands/dev.js → ../../server
-  // When running via tsx: packages/cli/src/commands/dev.ts → ../../server
-  const dir = path.resolve(here, "../../../server");
+  const dir = path.resolve(__dirname, "../../server");
   debug("resolved serverDir=%s", dir);
   return dir;
 }
@@ -45,15 +39,10 @@ function generateLocalMasterKey(): string {
   return Buffer.from(bytes).toString("base64");
 }
 
-/**
- * Write (or overwrite) the .dev.vars file with a fresh MASTER_KEY.
- * Returns the key that was written.
- */
 function ensureDevVars(force = false): string {
   debug("ensureDevVars force=%s", force);
   const devVars = devVarsPath();
   if (!force && fs.existsSync(devVars)) {
-    // Already exists — extract the key
     const existing = fs.readFileSync(devVars, "utf8");
     const match = existing.match(/^MASTER_KEY=(.+)$/m);
     if (match) {
@@ -67,11 +56,8 @@ function ensureDevVars(force = false): string {
   return key;
 }
 
-/**
- * Apply D1 migrations locally using wrangler.
- */
 function applyLocalMigrations() {
-  debug("applying local migrations via keyflare");
+  debug("applying local migrations via wrangler");
   const result = spawnSync(
     "npx",
     ["wrangler", "d1", "migrations", "apply", "keyflare", "--local"],
@@ -87,15 +73,10 @@ function applyLocalMigrations() {
   debug("local migrations applied");
 }
 
-/**
- * `kfl dev server` — Start the local Keyflare server via wrangler dev.
- * Blocks until the user kills it (Ctrl-C).
- */
-export async function runDevServer(options: { port?: number } = {}) {
+async function runDevServer(options: { port?: number } = {}) {
   const port = options.port ?? 8787;
   debug("runDevServer port=%d", port);
 
-  // Make sure .dev.vars exists
   ensureDevVars();
 
   log(bold("\n🔥 Keyflare Dev Server\n"));
@@ -116,21 +97,12 @@ export async function runDevServer(options: { port?: number } = {}) {
     process.exit(code ?? 0);
   });
 
-  // Forward signals
   for (const sig of ["SIGINT", "SIGTERM"] as const) {
     process.on(sig, () => proc.kill(sig));
   }
 }
 
-/**
- * `kfl dev init` — Full local bootstrap without Cloudflare.
- *
- * 1. Generates/uses local MASTER_KEY in .dev.vars
- * 2. Applies D1 migrations locally
- * 3. Starts wrangler dev in the background long enough to bootstrap
- * 4. Calls /bootstrap → saves credentials pointing at localhost
- */
-export async function runDevInit(options: { force?: boolean } = {}) {
+async function runDevInit(options: { force?: boolean } = {}) {
   debug("runDevInit force=%s", Boolean(options.force));
   log(bold("\n🔥 Keyflare Local Setup\n"));
   log(
@@ -139,14 +111,12 @@ export async function runDevInit(options: { force?: boolean } = {}) {
     )
   );
 
-  // ── Step 1: .dev.vars
   const devVarsSpinner = ora("Setting up local master key...").start();
   ensureDevVars(options.force);
   devVarsSpinner.succeed(
     `Local master key ready ${dim("(packages/server/.dev.vars)")}`
   );
 
-  // ── Step 2: Migrations
   const migrateSpinner = ora("Applying D1 migrations locally...").start();
   try {
     applyLocalMigrations();
@@ -156,7 +126,6 @@ export async function runDevInit(options: { force?: boolean } = {}) {
     process.exit(1);
   }
 
-  // ── Step 3: Start wrangler dev in background
   const serverSpinner = ora("Starting local server...").start();
   const port = 8787;
   const proc = spawn(
@@ -170,12 +139,10 @@ export async function runDevInit(options: { force?: boolean } = {}) {
     }
   );
 
-  // Wait until ready
   debug("waiting for local server to become healthy on port=%d", port);
   await waitForServer(port, 15_000);
   serverSpinner.succeed(`Local server ready at ${bold(LOCAL_API_URL)}`);
 
-  // ── Step 4: Bootstrap
   const bootstrapSpinner = ora("Creating local user key...").start();
   process.env.KEYFLARE_API_URL = LOCAL_API_URL;
 
@@ -222,19 +189,14 @@ export async function runDevInit(options: { force?: boolean } = {}) {
 
   log(
     `\nStart the local server anytime with:\n\n` +
-    `  ${bold("kfl dev server")}\n\n` +
+    `  ${bold("pnpm run dev:server")}\n\n` +
     `Or set these env vars to use the local instance:\n\n` +
     `  ${bold(`KEYFLARE_LOCAL=true`)}\n` +
     `  ${bold(`KEYFLARE_API_KEY=${adminKey}`)}\n`
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────
-
-async function waitForServer(
-  port: number,
-  timeoutMs: number
-): Promise<void> {
+async function waitForServer(port: number, timeoutMs: number): Promise<void> {
   debug("waitForServer start port=%d timeoutMs=%d", port, timeoutMs);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -247,4 +209,27 @@ async function waitForServer(
     await new Promise((r) => setTimeout(r, 200));
   }
   throw new Error(`Server did not start within ${timeoutMs}ms`);
+}
+
+// CLI entry point
+const command = process.argv[2];
+
+switch (command) {
+  case "init":
+    runDevInit({ force: process.argv.includes("--force") }).catch((err) => {
+      console.error(err.message);
+      process.exit(1);
+    });
+    break;
+  case "server":
+    runDevServer({ port: parseInt(process.argv[3], 10) || 8787 }).catch((err) => {
+      console.error(err.message);
+      process.exit(1);
+    });
+    break;
+  default:
+    console.error(`Usage: tsx local-dev.ts <init|server> [options]`);
+    console.error(`  init   — One-time local setup`);
+    console.error(`  server — Start local server`);
+    process.exit(1);
 }
