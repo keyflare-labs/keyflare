@@ -707,8 +707,7 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
   }
 
   if (adminKey) {
-    warn(bold("⚠️  IMPORTANT: Your user key (save this securely!)\n"));
-    log(`  ${bold(adminKey)}\n`);
+    warn(bold("⚠️  IMPORTANT: Your user key\n"));
     log(
       dim(
         "This key is required for `kfl login`. It has been saved to\n" +
@@ -716,7 +715,6 @@ export async function runInit(options: { force?: boolean; masterKey?: string }) 
           "If lost, recovery requires manual database operations.\n"
       )
     );
-    await confirm({ message: "I have saved the user key", default: false });
   }
 
   log(dim(`\nAPI URL: ${apiUrl}`));

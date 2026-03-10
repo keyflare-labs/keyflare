@@ -132,13 +132,15 @@ sequenceDiagram
 ? I have saved the master key  Yes
 
 ✓ Database migrations applied
-✓ Root API key created
+✓ User key created
 
 ✓ Keyflare deployed successfully!
 
-Your root API key (shown once — already saved to ~/.config/keyflare/):
+⚠ IMPORTANT: Your user key
 
-  kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+This key is required for `kfl login`. It has been saved to
+~/.config/keyflare/credentials, but you should back it up securely.
+If lost, recovery requires manual database operations.
 
 API URL: https://keyflare.my-account.workers.dev
 Config:  ~/.config/keyflare/
