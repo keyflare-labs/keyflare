@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import { runInit, killActiveChild } from "./commands/init.js";
 import { runLogin } from "./commands/login.js";
 import {
@@ -45,10 +48,15 @@ function readDefaultConfig(): ReturnType<typeof readConfig> {
 debug("argv=%o", process.argv.slice(2));
 debug("DEBUG=%s", process.env.DEBUG ?? "<unset>");
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+);
+
 program
   .name("kfl")
   .description("Keyflare — open-source secrets manager on Cloudflare")
-  .version("0.1.0")
+  .version(pkg.version)
   .allowExcessArguments(false)
   .showHelpAfterError(true);
 

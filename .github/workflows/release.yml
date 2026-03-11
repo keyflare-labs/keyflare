@@ -62,3 +62,17 @@ jobs:
         run: pnpm publish packages/cli --no-git-checks --access public --tag ${{ steps.dist-tag.outputs.tag }}
         # TODO: enable this once the repo is public
         # --provenance
+
+      - name: Commit version update to source branch
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH=$(git branch -r --contains HEAD | grep -o 'origin/[^ ]*' | head -1 | sed 's|origin/||')
+          echo "Detected branch: $BRANCH"
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH"
+          npm pkg set version="$VERSION" --workspace packages/cli
+          git add packages/cli/package.json
+          git commit -m "chore: bump CLI version to ${GITHUB_REF_NAME}"
+          git push origin "$BRANCH"
