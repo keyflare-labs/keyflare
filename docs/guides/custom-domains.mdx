@@ -1,0 +1,32 @@
+---
+title: "Custom Domains"
+description: "Use a custom domain for Keyflare"
+---
+
+## Custom Domains
+
+Add a custom domain to your Worker:
+
+<Tabs>
+  <Tab title="Cloudflare Dashboard">
+    1. Go to **Workers & Pages → keyflare → Settings → Triggers**
+    2. Click **Custom Domains**
+    3. Add: `secrets.yourdomain.com`
+  </Tab>
+  <Tab title="wrangler.jsonc">
+    Add to your `wrangler.jsonc`:
+
+    ```json
+    {
+      "routes": [
+        {
+          "pattern": "secrets.yourdomain.com/*",
+          "zone_name": "yourdomain.com"
+        }
+      ]
+    }
+    ```
+
+    Then run `kfl init` to redeploy.
+  </Tab>
+</Tabs>

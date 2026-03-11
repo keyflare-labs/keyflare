@@ -1,0 +1,81 @@
+---
+title: "Security & Backup"
+description: "Monitor your Keyflare instance and define your backup strategy."
+---
+
+# Monitoring
+
+## Health Check
+
+```bash
+curl https://keyflare.your-account.workers.dev/health
+# → { "ok": true, "data": { "ok": true, "version": "0.1.0" } }
+```
+
+## Worker Logs
+
+```bash
+# Real-time logs
+cd packages/server && npx wrangler tail
+
+# Errors only
+npx wrangler tail --status error
+```
+
+## D1 Metrics
+
+Available in Cloudflare dashboard under **Workers & Pages → D1**:
+
+- Query count
+- Rows read/written
+- Database size
+- Error rate
+
+# Backup & Recovery
+
+## D1 Backup
+
+Cloudflare automatically backs up D1. Export manually:
+
+```bash
+cd packages/server
+npx wrangler d1 export keyflare --output backup.sql
+```
+
+## Master Key Backup
+
+<Warning>
+  **The MASTER_KEY is critical.** Without it, all encrypted data is permanently unrecoverable.
+</Warning>
+
+Recommended storage:
+
+- Password manager (1Password, Bitwarden)
+- Printed in a physical safe
+- HSM for enterprise setups
+
+**Never store in:**
+
+- Git repository
+- Plain text files
+- CI environment variables
+- The D1 database itself
+
+## Disaster Recovery
+
+| Scenario               | Recovery                                                                  |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Worker deleted         | Redeploy via `wrangler deploy`. Push MASTER_KEY again. D1 data is intact. |
+| D1 data corrupted      | Restore from Cloudflare automatic backups.                                |
+| D1 deleted             | Restore from `backup.sql` + push MASTER_KEY.                              |
+| MASTER_KEY lost        | **Unrecoverable.** Create new instance, re-upload all secrets.            |
+| MASTER_KEY compromised | Revoke all API keys. Create new instance. Re-upload secrets.              |
+| API key compromised    | `kfl keys revoke <prefix>` — instant effect.                              |
+
+# Security Checklist
+
+- Master key backed up securely
+- First User Key stored in password manager
+- System keys created for CI/CD with minimal scopes
+- Custom domain with TLS enabled
+- Regular key rotation schedule established

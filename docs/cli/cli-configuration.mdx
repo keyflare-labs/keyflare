@@ -1,0 +1,41 @@
+---
+title: "CLI Configuration"
+sidebar_position: 3
+description: "Custom configurations for the CLI"
+---
+
+After deployment, the CLI stores configuration in:
+
+```text
+~/.config/keyflare/
+├── config.yaml      # Default settings
+└── credentials      # API key (file permissions 0600)
+```
+
+**config.yaml:**
+
+```yaml
+api_url: "https://keyflare.<account>.workers.dev"
+project: "my-api"          # Default project (optional)
+environment: "development"  # Default environment (optional)
+```
+
+**credentials:**
+
+```text
+kfl_user_a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+```
+
+# Environment Variables
+
+Override CLI configuration with environment variables:
+
+| Variable               | Description                                     |
+| ---------------------- | ----------------------------------------------- |
+| `KEYFLARE_API_KEY`     | API key (overrides credentials file)            |
+| `KEYFLARE_API_URL`     | API URL (overrides config file)                 |
+| `KEYFLARE_LOCAL`       | Set to `true` to target `http://localhost:8787` |
+| `KEYFLARE_PROJECT`     | Default project (overrides config file)         |
+| `KEYFLARE_ENV`         | Default environment (overrides config file)     |
+| `CLOUDFLARE_API_TOKEN` | Used by `kfl init` (skips auth prompt)          |
+| `DEBUG`                | Set to `keyflare` for CLI debug logs            |

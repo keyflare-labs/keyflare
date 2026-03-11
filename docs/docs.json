@@ -33,8 +33,7 @@
             "group": "Getting Started",
             "pages": [
               "getting-started/introduction",
-              "getting-started/quickstart",
-              "getting-started/requirements"
+              "getting-started/quickstart"
             ]
           },
           {
@@ -42,13 +41,16 @@
             "pages": [
               "guides/projects",
               "guides/secrets",
+              "guides/using-secrets",
               "guides/api-keys",
               "guides/updating-keyflare",
               {
                 "group": "Advanced",
                 "pages": [
-                  "custom-master-key",
-                  "guides/deployment"
+                  "guides/custom-master-key",
+                  "guides/custom-deployments",
+                  "guides/custom-domains",
+                  "guides/security-and-backup"
                 ]
               }
             ]
@@ -73,7 +75,8 @@
       {
         "tab": "CLI Reference",
         "pages": [
-          "cli/overview"
+          "cli/overview",
+          "cli/cli-configuration"
         ]
       },
       {

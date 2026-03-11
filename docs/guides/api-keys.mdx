@@ -1,29 +1,27 @@
 ---
-title: API Keys & Access Control
-description: Manage user and system API keys
+title: "API Keys & Access Control"
+description: "Manage user and system API keys"
 sidebar_position: 3
 ---
 
-# API Keys & Access Control
-
 Keyflare uses API keys for authentication. There are two types with different access levels.
 
-## Key Types
+# Key Types
 
-| | User Key | System Key |
-|---|---|---|
-| **Prefix** | `kfl_user_*` | `kfl_sys_*` |
-| **Access** | Full admin | Scoped to project:environment |
-| **Use for** | Developers, admins | CI/CD, deployment scripts |
+|             | User Key           | System Key                    |
+| ----------- | ------------------ | ----------------------------- |
+| **Prefix**  | `kfl_user_*`       | `kfl_sys_*`                   |
+| **Access**  | Full admin         | Scoped to project:environment |
+| **Use for** | Developers, admins | CI/CD, deployment scripts     |
 
-### User Keys (`kfl_user_*`)
+## User Keys (`kfl_user_*`)
 
 - **Full admin access** to everything
 - Can manage all projects, environments, secrets, and other API keys
 - No scoping required — access to all resources
 - Use for: developers, admins, backup keys
 
-### System Keys (`kfl_sys_*`)
+## System Keys (`kfl_sys_*`)
 
 - **Scoped access** to specific project:environment pairs
 - Can only read or write secrets within their scope
@@ -32,15 +30,15 @@ Keyflare uses API keys for authentication. There are two types with different ac
 
 ## Permission Levels
 
-| | Read Secrets | Write Secrets | Manage Projects | Manage Keys |
-|---|:---:|:---:|:---:|:---:|
-| **User key** | ✅ | ✅ | ✅ | ✅ |
-| **System key** — `read` | ✅ (scoped) | ❌ | ❌ | ❌ |
-| **System key** — `readwrite` | ✅ (scoped) | ✅ (scoped) | ❌ | ❌ |
+|                              | Read Secrets | Write Secrets | Manage Projects | Manage Keys |
+| ---------------------------- | :----------: | :-----------: | :-------------: | :---------: |
+| **User key**                 | ✅            | ✅             | ✅               | ✅           |
+| **System key** — `read`      | ✅ (scoped)   | ❌             | ❌               | ❌           |
+| **System key** — `readwrite` | ✅ (scoped)   | ✅ (scoped)    | ❌               | ❌           |
 
-## Create API Keys
+# Create API Keys
 
-### User Key
+## User Key
 
 ```bash
 kfl keys create --type user --label "backup-admin"
@@ -51,7 +49,7 @@ kfl keys create --type user --label "backup-admin"
   The full key is shown **only once**. Save it securely — it cannot be retrieved again.
 </Warning>
 
-### System Key
+## System Key
 
 System keys require `--scope` and `--permission` flags:
 
@@ -77,8 +75,9 @@ kfl keys create --type system \
   --permission readwrite
 ```
 
-<Note title="Zsh Users">
+<Note>
   The `*` wildcard must be quoted to prevent shell expansion:
+
   ```bash
   # Correct
   kfl keys create --type system --scope "my-api:*" --permission read
@@ -88,24 +87,25 @@ kfl keys create --type system \
   ```
 </Note>
 
-### Scope Format
+## Scope Format
 
 Scopes follow the format `project:environment`:
 
-| Scope | Meaning |
-|-------|---------|
+| Scope               | Meaning                               |
+| ------------------- | ------------------------------------- |
 | `my-api:production` | Access to production environment only |
-| `my-api:staging` | Access to staging environment only |
-| `my-api:*` | Access to ALL environments in my-api |
+| `my-api:staging`    | Access to staging environment only    |
+| `my-api:*`          | Access to ALL environments in my-api  |
 
-## List Keys
+# List Keys
 
 ```bash
 kfl keys list
 ```
 
 Output:
-```
+
+```text
 PREFIX          TYPE    LABEL              PERMISSION  SCOPES               CREATED
 kfl_user_a1b2   user    bootstrap          full        *                    2024-01-15
 kfl_user_b2c3   user    backup-admin       full        *                    2024-01-16
@@ -113,7 +113,7 @@ kfl_sys_c3d4    system  github-actions     read        my-api:production    2024
 kfl_sys_d4e5    system  dev-script         readwrite   my-api:*             2024-01-17
 ```
 
-## Update System Keys
+# Update System Keys
 
 Update scopes and permissions for an existing system key:
 
@@ -129,89 +129,10 @@ kfl keys put kfl_sys_c3d4 \
   `kfl keys put` **replaces all existing scopes** with the new set. Copy current scopes from `kfl keys list` and modify as needed.
 </Note>
 
-## Revoke Keys
+# Revoke Keys
 
 ```bash
 kfl keys revoke kfl_sys_c3d4
 ```
 
 Revocation is instant — the key can no longer authenticate.
-
-## Authorization Flow
-
-```mermaid
-flowchart TD
-    A[Request with API key] --> B[Hash key with SHA-256]
-    B --> C{Key exists?}
-    C -->|No| D[401 Unauthorized]
-    C -->|Yes| E{Revoked?}
-    E -->|Yes| D
-    E -->|No| F{Key type?}
-    F -->|User| G[Full access granted]
-    F -->|System| H{Scope matches?}
-    H -->|No| I[403 Forbidden]
-    H -->|Yes| J{Permission allows?}
-    J -->|No| I
-    J -->|Yes| K[Scoped access granted]
-```
-
-## CI/CD Integration
-
-### GitHub Actions
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install Keyflare CLI
-        run: npm install -g @keyflare/cli
-      
-      - name: Deploy with secrets
-        env:
-          KEYFLARE_API_KEY: ${{ secrets.KEYFLARE_API_KEY }}
-          KEYFLARE_API_URL: https://keyflare.your-account.workers.dev
-        run: |
-          kfl run --project my-api --env production -- npm run deploy
-```
-
-Create a system key for GitHub Actions:
-```bash
-kfl keys create --type system \
-  --label "github-actions" \
-  --scope "my-api:production" \
-  --permission read
-```
-
-Store the key in GitHub repository secrets as `KEYFLARE_API_KEY`.
-
-### Docker
-
-```bash
-# Build with secrets
-kfl run --project my-api --env production -- docker build -t my-api .
-
-# Run with secrets
-kfl run --project my-api --env production -- docker run my-api
-```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Local Development" href="/guides/local-development">
-    Run Keyflare locally without Cloudflare.
-  </Card>
-
-  <Card title="Deployment" href="/guides/deployment">
-    Production deployment best practices.
-  </Card>
-</CardGroup>

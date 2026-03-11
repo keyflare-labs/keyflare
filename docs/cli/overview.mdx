@@ -1,6 +1,6 @@
 ---
-title: CLI Reference
-description: Complete reference for the kfl CLI
+title: "CLI Reference"
+description: "Complete reference for the kfl CLI"
 sidebar_position: 1
 ---
 
@@ -15,20 +15,21 @@ npm install -g @keyflare/cli
 ```
 
 Or use directly with npx:
+
 ```bash
 npx @keyflare/cli <command>
 ```
 
 ## Global Options
 
-| Option | Description |
-|--------|-------------|
-| `--api-url <url>` | Override API URL (default: from config) |
-| `--api-key <key>` | Override API key (default: from credentials file or `$KEYFLARE_API_KEY`) |
-| `--project <name>` | Override default project |
-| `--env <name>` | Override default environment |
-| `--help` | Show help |
-| `--version` | Show version |
+| Option             | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| `--api-url <url>`  | Override API URL (default: from config)                                  |
+| `--api-key <key>`  | Override API key (default: from credentials file or `$KEYFLARE_API_KEY`) |
+| `--project <name>` | Override default project                                                 |
+| `--env <name>`     | Override default environment                                             |
+| `--help`           | Show help                                                                |
+| `--version`        | Show version                                                             |
 
 ## Commands
 
@@ -40,14 +41,15 @@ Deploy or update Keyflare on your Cloudflare account.
 kfl init [-y] [--name <name>] [--d1id <uuid>] [--master-key <key>]
 ```
 
-| Flag | Description |
-|------|-------------|
-| `-y, --yes` | Skip confirmation prompts (auto-accept) |
-| `--name <name>` | Worker and database name (default: `keyflare`). Must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 63 characters or less. |
-| `--d1id <uuid>` | Bind to an existing D1 database by UUID. Creates new DB if not provided (or uses the existing binding if a worker exists already). |
-| `--master-key <key>` | Custom master key (base64-encoded 256-bit) |
+| Flag                 | Description                                                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-y, --yes`          | Skip confirmation prompts (auto-accept)                                                                                                                                 |
+| `--name <name>`      | Worker and database name (default: `keyflare`). Must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 63 characters or less. |
+| `--d1id <uuid>`      | Bind to an existing D1 database by UUID. Creates new DB if not provided (or uses the existing binding if a worker exists already).                                      |
+| `--master-key <key>` | Custom master key (base64-encoded 256-bit)                                                                                                                              |
 
 **Authentication:**
+
 - Reuses existing Wrangler session when available
 - Falls back to `CLOUDFLARE_API_TOKEN` environment variable
 - Prompts for OAuth browser login or API token if neither available
@@ -82,6 +84,7 @@ kfl login
 ```
 
 Interactive prompts for:
+
 1. Keyflare API URL
 2. API key
 
@@ -107,8 +110,8 @@ kfl projects create <name> --environmentless
 kfl projects delete <name>
 ```
 
-| Flag | Description |
-|------|-------------|
+| Flag                | Description                                 |
+| ------------------- | ------------------------------------------- |
 | `--environmentless` | Create project without default environments |
 
 ---
@@ -173,10 +176,10 @@ Download secrets in various formats.
 kfl download --project <name> --env <env> [options]
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--format <fmt>` | Output format: `env` (default), `json`, `yaml`, `shell` |
-| `--output <file>` | Write to file (default: stdout) |
+| Option            | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `--format <fmt>`  | Output format: `env` (default), `json`, `yaml`, `shell` |
+| `--output <file>` | Write to file (default: stdout)                         |
 
 ---
 
@@ -189,6 +192,7 @@ kfl run --project <name> --env <env> -- <command> [args...]
 ```
 
 Examples:
+
 ```bash
 kfl run --project my-api --env production -- npm run build
 kfl run --project my-api --env development -- npm run dev
@@ -224,58 +228,22 @@ kfl keys put <prefix> \
 kfl keys revoke <prefix>
 ```
 
-| Flag | Description |
-|------|-------------|
-| `--type <type>` | Key type: `user` or `system` |
-| `--label <label>` | Human-readable label |
+| Flag                    | Description                                                  |
+| ----------------------- | ------------------------------------------------------------ |
+| `--type <type>`         | Key type: `user` or `system`                                 |
+| `--label <label>`       | Human-readable label                                         |
 | `--scope <project:env>` | Scope for system keys. Repeatable. Use `*` for env wildcard. |
-| `--permission <perm>` | Permission: `read` or `readwrite` (system keys only) |
+| `--permission <perm>`   | Permission: `read` or `readwrite` (system keys only)         |
 
 ---
 
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `KEYFLARE_API_KEY` | API key (overrides credentials file) |
-| `KEYFLARE_API_URL` | API URL (overrides config file) |
-| `KEYFLARE_LOCAL` | Set to `true` to target `http://localhost:8787` |
-| `KEYFLARE_PROJECT` | Default project |
-| `KEYFLARE_ENV` | Default environment |
-| `CLOUDFLARE_API_TOKEN` | Used by `kfl init` (skips auth prompt) |
-| `DEBUG` | Set to `keyflare` for debug logs |
-
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Authentication error |
-| 3 | Authorization error |
-| 4 | Resource not found |
-| 5 | Network error |
-
-## Configuration Files
-
-```
-~/.config/keyflare/
-├── config.yaml      # Default settings
-└── credentials      # API key (permissions 0600)
-```
-
-**config.yaml:**
-```yaml
-api_url: "https://keyflare.account.workers.dev"
-project: "my-api"
-environment: "development"
-```
-
-## Output Formats
-
-| Format | Flag | Description |
-|--------|------|-------------|
-| `.env` | `--format env` | `KEY=VALUE` per line |
-| JSON | `--format json` | `{ "KEY": "VALUE" }` |
-| YAML | `--format yaml` | `KEY: VALUE` per line |
-| Shell | `--format shell` | `export KEY="VALUE"` per line |
+| Code | Meaning              |
+| ---- | -------------------- |
+| 0    | Success              |
+| 1    | General error        |
+| 2    | Authentication error |
+| 3    | Authorization error  |
+| 4    | Resource not found   |
+| 5    | Network error        |

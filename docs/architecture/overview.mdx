@@ -4,18 +4,16 @@ description: "How Keyflare works under the hood"
 sidebar_position: 1
 ---
 
-# Architecture Overview
-
 Keyflare is a self-hosted secrets manager that runs as a single Cloudflare Worker backed by a single D1 database.
 
-## Core Principles
+# Core Principles
 
 1. **Single deployment target** — One Worker, one D1 database, one master secret
 2. **Zero trust storage** — Secret keys and values are encrypted at rest
 3. **Minimal surface area** — No users, no sessions, no OAuth
 4. **Simple mental model** — Projects → Environments → Secrets
 
-## Infrastructure
+# Infrastructure
 
 ```mermaid
 graph TB
@@ -44,7 +42,7 @@ graph TB
 
 **Total infrastructure:** 1 Worker + 1 D1 database + 1 secret
 
-## Data Model
+# Data Model
 
 ```mermaid
 erDiagram
@@ -87,26 +85,26 @@ erDiagram
     }
 ```
 
-### Projects
+## Projects
 
 A project is a namespace for secrets (e.g., `my-api`, `frontend-app`).
 
-### Environments
+## Environments
 
 Each project has environments (e.g., `production`, `staging`, `development`). New projects get **Dev** and **Prod** environments by default.
 
-### Secrets
+## Secrets
 
 Key-value pairs stored per environment. Both key names and values are encrypted with AES-256-GCM.
 
-### API Keys
+## API Keys
 
 Two types:
 
 - **User keys** (`kfl_user_*`) — Full admin access
 - **System keys** (`kfl_sys_*`) — Scoped to specific project:environment pairs
 
-## Request Flow
+# Request Flow
 
 ```mermaid
 sequenceDiagram
@@ -136,7 +134,7 @@ sequenceDiagram
     CLI->>CLI: 10. Output as .env / JSON / inject
 ```
 
-## `kfl init` flow
+# `kfl init` flow
 
 ```mermaid
 sequenceDiagram
@@ -158,7 +156,25 @@ sequenceDiagram
     CLI-->>User: Display keys & save config
 ```
 
-## Monorepo Structure
+# Authorization Flow
+
+```mermaid
+flowchart TD
+    A[Request with API key] --> B[Hash key with SHA-256]
+    B --> C{Key exists?}
+    C -->|No| D[401 Unauthorized]
+    C -->|Yes| E{Revoked?}
+    E -->|Yes| D
+    E -->|No| F{Key type?}
+    F -->|User| G[Full access granted]
+    F -->|System| H{Scope matches?}
+    H -->|No| I[403 Forbidden]
+    H -->|Yes| J{Permission allows?}
+    J -->|No| I
+    J -->|Yes| K[Scoped access granted]
+```
+
+# Monorepo Structure
 
 ```text
 keyflare/
@@ -184,7 +200,7 @@ keyflare/
 └── package.json   # Root package
 ```
 
-### NPM Package Bundling
+## NPM Package Bundling
 
 When published, the `@keyflare/cli` package bundles the server code:
 
@@ -201,7 +217,7 @@ When published, the `@keyflare/cli` package bundles the server code:
 
 This allows `kfl init` to deploy the Worker without requiring users to clone the repository.
 
-## Technology Stack
+# Technology Stack
 
 | Component       | Technology             | Rationale                                 |
 | --------------- | ---------------------- | ----------------------------------------- |
@@ -215,14 +231,3 @@ This allows `kfl init` to deploy the Worker without requiring users to clone the
 | CLI framework   | Commander.js           | Mature, TypeScript-native                 |
 | ORM             | Drizzle                | Type-safe, generates migrations           |
 | Build           | tsup / wrangler        | Fast bundling                             |
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card href="/architecture/security" title="Security Model">
-    Learn about encryption and threat mitigation.
-  </Card>
-  <Card href="/architecture/encryption" title="Encryption">
-    Deep dive into the crypto implementation.
-  </Card>
-</CardGroup>

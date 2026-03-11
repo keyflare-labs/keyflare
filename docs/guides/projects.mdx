@@ -1,16 +1,15 @@
 ---
-title: Projects & Environments
-description: Organize your secrets into projects and environments
+title: "Projects & Environments"
+description: "Organize your secrets into projects and environments"
 sidebar_position: 1
 ---
 
-# Projects & Environments
+Keyflare organizes secrets using a simple hierarchy: **Projects → Environments → Secrets**. See [Core Concepts](/getting-started/introduction#core-concepts).
 
-Keyflare organizes secrets using a simple hierarchy: **Projects → Environments → Secrets**.
-
-## Projects
+# Projects
 
 A project is a namespace for related secrets. For example:
+
 - `my-api` — Backend API secrets
 - `frontend` — Frontend application secrets
 - `worker` — Background worker secrets
@@ -18,7 +17,7 @@ A project is a namespace for related secrets. For example:
 ### Create a Project
 
 ```bash
-# Create a project with default environments (Dev, Prod)
+# Create a project with default environments (dev, prod)
 kfl projects create my-api
 
 # Create a project without default environments
@@ -26,7 +25,7 @@ kfl projects create my-api --environmentless
 ```
 
 <Note>
-  New projects get two default environments (**Dev** and **Prod**) unless you use `--environmentless`.
+  New projects get two default environments (**dev** and **prod**) unless you use `--environmentless`.
 </Note>
 
 ### List Projects
@@ -36,7 +35,8 @@ kfl projects list
 ```
 
 Output:
-```
+
+```text
 NAME           ENVIRONMENTS  CREATED
 my-api         2             2024-01-15
 frontend       2             2024-01-16
@@ -53,9 +53,10 @@ kfl projects delete my-api
   Deleting a project removes **all** environments and secrets. This cannot be undone.
 </Warning>
 
-## Environments
+# Environments
 
 Each project contains environments. Common environment names:
+
 - `development` / `dev`
 - `staging` / `stage`
 - `production` / `prod`
@@ -73,7 +74,8 @@ kfl env list --project my-api
 ```
 
 Output:
-```
+
+```text
 ENVIRONMENT    SECRETS  LAST UPDATED
 development    12       2024-01-17
 staging        12       2024-01-17
@@ -90,17 +92,7 @@ kfl env delete staging --project my-api
   Deleting an environment removes **all** secrets in that environment.
 </Warning>
 
-## Typical Workflow
-
-```mermaid
-graph LR
-    A[Create Project] --> B[Create Environments]
-    B --> C[Add Secrets]
-    C --> D[Use in CI/CD]
-    D --> E[Runtime Injection]
-```
-
-### Example: New Project Setup
+# Example: New Project Setup
 
 ```bash
 # 1. Create the project
@@ -127,11 +119,10 @@ kfl env list --project my-api
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Manage Secrets" href="/guides/secrets">
-    Add, update, and retrieve secrets.
+  <Card href="/guides/secrets" title="Manage Secrets">
+    Add and update secrets.
   </Card>
-
-  <Card title="API Keys" href="/guides/api-keys">
-    Create scoped keys for CI/CD and services.
+  <Card href="/guides/using-secrets" title="Using Secrets">
+    Download and inject secrets.
   </Card>
 </CardGroup>
