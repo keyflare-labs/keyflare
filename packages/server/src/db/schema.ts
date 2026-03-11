@@ -23,7 +23,7 @@ export const projects = sqliteTable("projects", {
   createdAt: text("created_at").notNull(),
 });
 
-// ─── Environments (Configs) ───
+// ─── Environments ───
 
 export const environments = sqliteTable(
   "environments",

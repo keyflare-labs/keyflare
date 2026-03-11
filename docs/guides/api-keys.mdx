@@ -181,7 +181,7 @@ jobs:
           KEYFLARE_API_KEY: ${{ secrets.KEYFLARE_API_KEY }}
           KEYFLARE_API_URL: https://keyflare.your-account.workers.dev
         run: |
-          kfl run --project my-api --config production -- npm run deploy
+          kfl run --project my-api --env production -- npm run deploy
 ```
 
 Create a system key for GitHub Actions:
@@ -198,10 +198,10 @@ Store the key in GitHub repository secrets as `KEYFLARE_API_KEY`.
 
 ```bash
 # Build with secrets
-kfl run --project my-api --config production -- docker build -t my-api .
+kfl run --project my-api --env production -- docker build -t my-api .
 
 # Run with secrets
-kfl run --project my-api --config production -- docker run my-api
+kfl run --project my-api --env production -- docker run my-api
 ```
 
 ## Next Steps

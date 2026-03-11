@@ -54,8 +54,8 @@ export KEYFLARE_API_KEY=kfl_user_<key-from-dev-init>
 
 # All commands now target localhost:8787
 kfl projects create my-api
-kfl configs create development --project my-api
-kfl secrets set DB_URL=postgres://localhost --project my-api --config development
+kfl env create development --project my-api
+kfl secrets set DB_URL=postgres://localhost --project my-api --env development
 ```
 
 Alternatively, configure `~/.config/keyflare/config.yaml`:

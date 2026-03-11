@@ -16,7 +16,7 @@ export const createProjectSchema = z
   })
   .strict();
 
-export const createConfigSchema = z
+export const createEnvironmentSchema = z
   .object({
     name: nonEmptyString,
   })
@@ -74,7 +74,7 @@ export const patchSecretsSchema = z
   });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
-export type CreateConfigInput = z.infer<typeof createConfigSchema>;
+export type CreateEnvironmentInput = z.infer<typeof createEnvironmentSchema>;
 export type CreateKeyInput = z.infer<typeof createKeySchema>;
 export type UpdateKeyInput = z.infer<typeof updateKeySchema>;
 export type SetSecretsInput = z.infer<typeof setSecretsSchema>;

@@ -124,28 +124,28 @@ export interface DeleteProjectResponse {
   secrets_removed: number;
 }
 
-// ─── Configs (Environments) ───
+// ─── Environments ───
 
-export interface CreateConfigRequest {
+export interface CreateEnvironmentRequest {
   name: string;
 }
 
-export interface ConfigInfo {
+export interface EnvironmentInfo {
   id: string;
   name: string;
   secret_count: number;
   created_at: string;
 }
 
-export interface CreateConfigResponse {
+export interface CreateEnvironmentResponse {
   id: string;
   name: string;
   project: string;
   created_at: string;
 }
 
-export interface ListConfigsResponse {
-  configs: ConfigInfo[];
+export interface ListEnvironmentsResponse {
+  environments: EnvironmentInfo[];
 }
 
 // ─── Secrets ───
@@ -161,7 +161,7 @@ export interface SetSecretsRequest {
 export interface SetSecretsResponse {
   count: number;
   project: string;
-  config: string;
+  environment: string;
 }
 
 export interface PatchSecretsRequest {

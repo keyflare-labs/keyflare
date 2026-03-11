@@ -55,7 +55,7 @@ kfl projects delete my-api
 
 ## Environments
 
-Each project contains environments (also called "configs"). Common environment names:
+Each project contains environments. Common environment names:
 - `development` / `dev`
 - `staging` / `stage`
 - `production` / `prod`
@@ -63,27 +63,27 @@ Each project contains environments (also called "configs"). Common environment n
 ### Create an Environment
 
 ```bash
-kfl configs create staging --project my-api
+kfl env create staging --project my-api
 ```
 
 ### List Environments
 
 ```bash
-kfl configs list --project my-api
+kfl env list --project my-api
 ```
 
 Output:
 ```
-CONFIG        SECRETS  LAST UPDATED
-development   12       2024-01-17
-staging       12       2024-01-17
-production    15       2024-01-18
+ENVIRONMENT    SECRETS  LAST UPDATED
+development    12       2024-01-17
+staging        12       2024-01-17
+production     15       2024-01-18
 ```
 
 ### Delete an Environment
 
 ```bash
-kfl configs delete staging --project my-api
+kfl env delete staging --project my-api
 ```
 
 <Warning>
@@ -108,20 +108,20 @@ kfl projects create my-api
 # ✓ Project "my-api" created with environments: Dev, Prod
 
 # 2. Add a staging environment
-kfl configs create staging --project my-api
-# ✓ Config "staging" created in project "my-api"
+kfl env create staging --project my-api
+# ✓ Environment "staging" created in project "my-api"
 
 # 3. Add secrets to each environment
-kfl secrets set DATABASE_URL=postgres://dev... --project my-api --config Dev
-kfl secrets set DATABASE_URL=postgres://stage... --project my-api --config staging
-kfl secrets set DATABASE_URL=postgres://prod... --project my-api --config Prod
+kfl secrets set DATABASE_URL=postgres://dev... --project my-api --env Dev
+kfl secrets set DATABASE_URL=postgres://stage... --project my-api --env staging
+kfl secrets set DATABASE_URL=postgres://prod... --project my-api --env Prod
 
 # 4. Verify
-kfl configs list --project my-api
-# CONFIG      SECRETS  LAST UPDATED
-# Dev         1        2024-01-17
-# Prod        1        2024-01-17
-# staging     1        2024-01-17
+kfl env list --project my-api
+# ENVIRONMENT    SECRETS  LAST UPDATED
+# Dev            1        2024-01-17
+# Prod           1        2024-01-17
+# staging        1        2024-01-17
 ```
 
 ## Next Steps

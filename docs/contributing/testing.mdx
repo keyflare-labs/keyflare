@@ -55,7 +55,7 @@ New migrations are picked up automatically — no test code changes needed when 
 | File | Description |
 |------|-------------|
 | `test/basic.test.ts` | Smoke tests: health, 404, bootstrap idempotence, auth 401 |
-| `test/api.test.ts` | Full API integration tests: keys CRUD, projects, configs, secrets, system-key scoping |
+| `test/api.test.ts` | Full API integration tests: keys CRUD, projects, environments, secrets, system-key scoping |
 
 ## Writing Tests
 
@@ -154,7 +154,7 @@ it('system key respects scopes', async () => {
 
   // Should work for allowed scope
   const allowedResponse = await worker.fetch(
-    new Request('http://localhost/projects/my-api/configs/production/secrets', {
+    new Request('http://localhost/projects/my-api/environments/production/secrets', {
       headers: { Authorization: `Bearer ${sysKey}` }
     }),
     env,
@@ -164,7 +164,7 @@ it('system key respects scopes', async () => {
 
   // Should fail for disallowed scope
   const deniedResponse = await worker.fetch(
-    new Request('http://localhost/projects/other/configs/dev/secrets', {
+    new Request('http://localhost/projects/other/environments/dev/secrets', {
       headers: { Authorization: `Bearer ${sysKey}` }
     }),
     env,

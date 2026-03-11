@@ -10,9 +10,9 @@ import {
   createProjectResponseSchema,
   listProjectsResponseSchema,
   deleteProjectResponseSchema,
-  createConfigResponseSchema,
-  listConfigsResponseSchema,
-  deleteConfigResponseSchema,
+  createEnvironmentResponseSchema,
+  listEnvironmentsResponseSchema,
+  deleteEnvironmentResponseSchema,
   getSecretsResponseSchema,
   setSecretsResponseSchema,
   patchSecretsResponseSchema,
@@ -225,16 +225,16 @@ export const describeDeleteProjectRoute = () =>
     },
   });
 
-export const describeListConfigsRoute = () =>
+export const describeListEnvironmentsRoute = () =>
   describeRoute({
     description:
-      "List all configs/environments in a project. System keys only see configs within their scope.",
-    tags: ["Configs"],
+      "List all environments in a project. System keys only see environments within their scope.",
+    tags: ["Environments"],
     responses: {
       200: {
-        description: "List of configs",
+        description: "List of environments",
         content: {
-          "application/json": { schema: resolver(listConfigsResponseSchema) },
+          "application/json": { schema: resolver(listEnvironmentsResponseSchema) },
         },
       },
       ...defaultResponses,
@@ -242,15 +242,15 @@ export const describeListConfigsRoute = () =>
     },
   });
 
-export const describeCreateConfigRoute = () =>
+export const describeCreateEnvironmentRoute = () =>
   describeRoute({
-    description: "Create a new environment/config within a project",
-    tags: ["Configs"],
+    description: "Create a new environment within a project",
+    tags: ["Environments"],
     responses: {
       201: {
-        description: "Config created successfully",
+        description: "Environment created successfully",
         content: {
-          "application/json": { schema: resolver(createConfigResponseSchema) },
+          "application/json": { schema: resolver(createEnvironmentResponseSchema) },
         },
       },
       ...defaultResponses,
@@ -260,16 +260,16 @@ export const describeCreateConfigRoute = () =>
     },
   });
 
-export const describeDeleteConfigRoute = () =>
+export const describeDeleteEnvironmentRoute = () =>
   describeRoute({
-    description: "Delete an environment/config and all its secrets",
-    tags: ["Configs"],
+    description: "Delete an environment and all its secrets",
+    tags: ["Environments"],
     responses: {
       200: {
-        description: "Config deleted successfully",
+        description: "Environment deleted successfully",
         content: {
           "application/json": {
-            schema: resolver(deleteConfigResponseSchema),
+            schema: resolver(deleteEnvironmentResponseSchema),
           },
         },
       },
@@ -282,7 +282,7 @@ export const describeDeleteConfigRoute = () =>
 export const describeGetSecretsRoute = () =>
   describeRoute({
     description:
-      "Get all secrets for a config. Returns decrypted key-value pairs.",
+      "Get all secrets for an environment. Returns decrypted key-value pairs.",
     tags: ["Secrets"],
     responses: {
       200: {
@@ -300,7 +300,7 @@ export const describeGetSecretsRoute = () =>
 export const describeSetSecretsRoute = () =>
   describeRoute({
     description:
-      "Set all secrets for a config (full override). Deletes all existing secrets first!",
+      "Set all secrets for an environment (full override). Deletes all existing secrets first!",
     tags: ["Secrets"],
     responses: {
       200: {

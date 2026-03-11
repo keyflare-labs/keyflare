@@ -9,10 +9,10 @@ import {
   runProjectsDelete,
 } from "./commands/projects.js";
 import {
-  runConfigsList,
-  runConfigsCreate,
-  runConfigsDelete,
-} from "./commands/configs.js";
+  runEnvironmentsList,
+  runEnvironmentsCreate,
+  runEnvironmentsDelete,
+} from "./commands/environments.js";
 import {
   runSecretsList,
   runSecretsGet,
@@ -151,90 +151,91 @@ projects
     await runProjectsDelete(name, opts).catch(handleError);
   });
 
-// ─── kfl configs ─────────────────────────────────────────────
-const configs = program
-  .command("configs")
-  .description("Manage configs (environments) within a project")
-  .action(() => configs.help());
+// ─── kfl environments (alias: env) ─────────────────────────────
+const environments = program
+  .command("environments")
+  .alias("env")
+  .description("Manage environments within a project")
+  .action(() => environments.help());
 
-configs
+environments
   .command("list")
-  .description("List all configs in a project")
+  .description("List all environments in a project")
   .requiredOption("--project <name>", "Project name", resolveProject())
   .action(async (opts) => {
-    await runConfigsList(opts.project).catch(handleError);
+    await runEnvironmentsList(opts.project).catch(handleError);
   });
 
-configs
+environments
   .command("create <name>")
-  .description("Create a new config in a project")
+  .description("Create a new environment in a project")
   .requiredOption("--project <name>", "Project name", resolveProject())
   .action(async (name: string, opts) => {
-    await runConfigsCreate(name, opts.project).catch(handleError);
+    await runEnvironmentsCreate(name, opts.project).catch(handleError);
   });
 
-configs
+environments
   .command("delete <name>")
-  .description("Delete a config and all its secrets")
+  .description("Delete an environment and all its secrets")
   .requiredOption("--project <name>", "Project name", resolveProject())
   .option("--force", "Skip confirmation prompt")
   .action(async (name: string, opts) => {
-    await runConfigsDelete(name, opts.project, opts).catch(handleError);
+    await runEnvironmentsDelete(name, opts.project, opts).catch(handleError);
   });
 
 // ─── kfl secrets ─────────────────────────────────────────────
 const secrets = program
   .command("secrets")
-  .description("Manage secrets within a config")
+  .description("Manage secrets within an environment")
   .action(() => secrets.help());
 
 secrets
   .command("list")
   .description("List secret keys (values hidden)")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .action(async (opts) => {
-    await runSecretsList(opts.project, opts.config).catch(handleError);
+    await runSecretsList(opts.project, opts.env).catch(handleError);
   });
 
 secrets
   .command("get <key>")
   .description("Print a single secret value to stdout")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .action(async (key: string, opts) => {
-    await runSecretsGet(key, opts.project, opts.config).catch(handleError);
+    await runSecretsGet(key, opts.project, opts.env).catch(handleError);
   });
 
 secrets
   .command("set <pairs...>")
   .description("Set one or more secrets (KEY=VALUE ...)")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .action(async (pairs: string[], opts) => {
-    await runSecretsSet(pairs, opts.project, opts.config).catch(handleError);
+    await runSecretsSet(pairs, opts.project, opts.env).catch(handleError);
   });
 
 secrets
   .command("delete <key>")
   .description("Delete a secret")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .action(async (key: string, opts) => {
-    await runSecretsDelete(key, opts.project, opts.config).catch(handleError);
+    await runSecretsDelete(key, opts.project, opts.env).catch(handleError);
   });
 
 // ─── kfl upload ──────────────────────────────────────────────
 program
   .command("upload <file>")
   .description(
-    "Upload a .env file — REPLACES all secrets in the target config"
+    "Upload a .env file — REPLACES all secrets in the target environment"
   )
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .option("--force", "Skip confirmation prompt")
   .action(async (file: string, opts) => {
-    await runUpload(file, opts.project, opts.config, opts).catch(handleError);
+    await runUpload(file, opts.project, opts.env, opts).catch(handleError);
   });
 
 // ─── kfl download ────────────────────────────────────────────
@@ -242,11 +243,11 @@ program
   .command("download")
   .description("Download secrets to stdout or a file")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .option("--format <fmt>", "Output format: env, json, yaml, shell", "env")
   .option("--output <file>", "Write to file instead of stdout")
   .action(async (opts) => {
-    await runDownload(opts.project, opts.config, opts).catch(handleError);
+    await runDownload(opts.project, opts.env, opts).catch(handleError);
   });
 
 // ─── kfl run ─────────────────────────────────────────────────
@@ -254,11 +255,11 @@ program
   .command("run")
   .description("Run a command with secrets injected as environment variables")
   .requiredOption("--project <name>", "Project name", resolveProject())
-  .requiredOption("--config <env>", "Config / environment name", resolveConfig())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
   .allowUnknownOption()
   .argument("[cmd...]", "Command and arguments (after --)")
-  .action(async (cmd: string[], opts: { project: string; config: string }) => {
-    await runRun(opts.project, opts.config, cmd).catch(handleError);
+  .action(async (cmd: string[], opts: { project: string; env: string }) => {
+    await runRun(opts.project, opts.env, cmd).catch(handleError);
   });
 
 // ─── kfl keys ────────────────────────────────────────────────
@@ -279,7 +280,7 @@ keys
   .description(
     "Create a new API key.\n\n" +
       "USER KEYS (kfl_user_*) — Full admin access.\n" +
-      "  - Can manage all projects, configs, secrets, and other API keys.\n" +
+      "  - Can manage all projects, environments, secrets, and other API keys.\n" +
       "  - No scoping required — has access to everything.\n" +
       "  - Required flags: --type user --label <label>\n\n" +
       "SYSTEM KEYS (kfl_sys_*) — Scoped access for CI/CD and automation.\n" +
@@ -342,9 +343,9 @@ function resolveProject(): string | undefined {
   return readDefaultConfig().project;
 }
 
-/** Read config/environment default from env or config file. */
-function resolveConfig(): string | undefined {
-  if (process.env.KEYFLARE_CONFIG) return process.env.KEYFLARE_CONFIG;
+/** Read environment default from env or config file. */
+function resolveEnvironment(): string | undefined {
+  if (process.env.KEYFLARE_ENV) return process.env.KEYFLARE_ENV;
   return readDefaultConfig().environment;
 }
 

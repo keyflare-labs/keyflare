@@ -187,7 +187,7 @@ describe("Basic smoke tests", () => {
     expect(res.status).toBe(409);
   });
 
-  it("POST /projects creates project with default Dev and Prod configs", async () => {
+  it("POST /projects creates project with default Dev and Prod environments", async () => {
     const createRes = await SELF.fetch("http://localhost/projects", {
       method: "POST",
       headers: {
@@ -198,19 +198,19 @@ describe("Basic smoke tests", () => {
     });
     expect(createRes.status).toBe(201);
     const listRes = await SELF.fetch(
-      "http://localhost/projects/default-envs-project/configs",
+      "http://localhost/projects/default-envs-project/environments",
       { headers: { Authorization: `Bearer ${apiKey}` } }
     );
     expect(listRes.status).toBe(200);
     const listJson = (await listRes.json()) as {
-      data: { configs: { name: string }[] };
+      data: { environments: { name: string }[] };
     };
-    expect(listJson.data.configs).toHaveLength(2);
-    const names = listJson.data.configs.map((c) => c.name).sort();
+    expect(listJson.data.environments).toHaveLength(2);
+    const names = listJson.data.environments.map((c) => c.name).sort();
     expect(names).toEqual(["Dev", "Prod"]);
   });
 
-  it("POST /projects with environmentless creates project without configs", async () => {
+  it("POST /projects with environmentless creates project without environments", async () => {
     const createRes = await SELF.fetch("http://localhost/projects", {
       method: "POST",
       headers: {
@@ -224,19 +224,19 @@ describe("Basic smoke tests", () => {
     });
     expect(createRes.status).toBe(201);
     const listRes = await SELF.fetch(
-      "http://localhost/projects/envless-project/configs",
+      "http://localhost/projects/envless-project/environments",
       { headers: { Authorization: `Bearer ${apiKey}` } }
     );
     expect(listRes.status).toBe(200);
-    const listJson = (await listRes.json()) as { data: { configs: unknown[] } };
-    expect(listJson.data.configs).toHaveLength(0);
+    const listJson = (await listRes.json()) as { data: { environments: unknown[] } };
+    expect(listJson.data.environments).toHaveLength(0);
   });
 
-  it("configs and secrets: create config, set secrets, get, patch, get again", async () => {
+  it("environments and secrets: create environment, set secrets, get, patch, get again", async () => {
     const project = "integration-test-app";
-    const config = "production";
+    const env = "production";
 
-    // Create project and config in this test so order with other tests doesn't matter
+    // Create project and environment in this test so order with other tests doesn't matter
     const createProjRes = await SELF.fetch("http://localhost/projects", {
       method: "POST",
       headers: {
@@ -248,20 +248,20 @@ describe("Basic smoke tests", () => {
     expect([201, 409]).toContain(createProjRes.status);
 
     const createConfigRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({ name: config }),
+        body: JSON.stringify({ name: env }),
       }
     );
     expect([201, 409]).toContain(createConfigRes.status);
 
     const setRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       {
         method: "PUT",
         headers: {
@@ -276,7 +276,7 @@ describe("Basic smoke tests", () => {
     expect(setRes.status).toBe(200);
 
     const getRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       { headers: { Authorization: `Bearer ${apiKey}` } }
     );
     expect(getRes.status).toBe(200);
@@ -285,7 +285,7 @@ describe("Basic smoke tests", () => {
     expect(getJson.data.secrets.API_KEY).toBe("secret123");
 
     const patchRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       {
         method: "PATCH",
         headers: {
@@ -304,7 +304,7 @@ describe("Basic smoke tests", () => {
     expect(patchJson.data.deleted).toBe(1);
 
     const getAfterRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       { headers: { Authorization: `Bearer ${apiKey}` } }
     );
     expect(getAfterRes.status).toBe(200);
@@ -316,9 +316,9 @@ describe("Basic smoke tests", () => {
 
   it("system key with scope can read scoped secrets only", async () => {
     const project = "scoped-test-app";
-    const config = "production";
+    const env = "production";
 
-    // Create project, config, and set a secret so system key has something to read
+    // Create project, environment, and set a secret so system key has something to read
     await SELF.fetch("http://localhost/projects", {
       method: "POST",
       headers: {
@@ -328,18 +328,18 @@ describe("Basic smoke tests", () => {
       body: JSON.stringify({ name: project }),
     });
     await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({ name: config }),
+        body: JSON.stringify({ name: env }),
       }
     );
     await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       {
         method: "PUT",
         headers: {
@@ -359,7 +359,7 @@ describe("Basic smoke tests", () => {
       body: JSON.stringify({
         type: "system",
         label: "scoped-reader",
-        scopes: [{ project, environment: config }],
+        scopes: [{ project, environment: env }],
         permission: "read",
       }),
     });
@@ -368,7 +368,7 @@ describe("Basic smoke tests", () => {
     const systemKey = keyJson.data.key;
 
     const getRes = await SELF.fetch(
-      `http://localhost/projects/${encodeURIComponent(project)}/configs/${encodeURIComponent(config)}/secrets`,
+      `http://localhost/projects/${encodeURIComponent(project)}/environments/${encodeURIComponent(env)}/secrets`,
       { headers: { Authorization: `Bearer ${systemKey}` } }
     );
     expect(getRes.status).toBe(200);
@@ -376,7 +376,7 @@ describe("Basic smoke tests", () => {
     expect(getJson.data.secrets.SCOPE_KEY).toBe("scoped-value");
 
     const otherProjectRes = await SELF.fetch(
-      "http://localhost/projects/other-project/configs/dev/secrets",
+      "http://localhost/projects/other-project/environments/dev/secrets",
       { headers: { Authorization: `Bearer ${systemKey}` } }
     );
     expect(otherProjectRes.status).toBe(403);

@@ -119,7 +119,7 @@ export const deleteProjectResponseSchema = z.object({
   }),
 });
 
-export const createConfigResponseSchema = z.object({
+export const createEnvironmentResponseSchema = z.object({
   ok: z.literal(true),
   data: z.object({
     id: z.string(),
@@ -129,21 +129,21 @@ export const createConfigResponseSchema = z.object({
   }),
 });
 
-export const configInfoSchema = z.object({
+export const environmentInfoSchema = z.object({
   id: z.string(),
   name: z.string(),
   secret_count: z.number(),
   created_at: z.string(),
 });
 
-export const listConfigsResponseSchema = z.object({
+export const listEnvironmentsResponseSchema = z.object({
   ok: z.literal(true),
   data: z.object({
-    configs: z.array(configInfoSchema),
+    environments: z.array(environmentInfoSchema),
   }),
 });
 
-export const deleteConfigResponseSchema = z.object({
+export const deleteEnvironmentResponseSchema = z.object({
   ok: z.literal(true),
   data: z.object({
     deleted: z.string(),
@@ -164,7 +164,7 @@ export const setSecretsResponseSchema = z.object({
   data: z.object({
     count: z.number(),
     project: z.string(),
-    config: z.string(),
+    environment: z.string(),
   }),
 });
 

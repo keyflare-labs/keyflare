@@ -1,6 +1,6 @@
 import type {
-  CreateConfigResponse,
-  ListConfigsResponse,
+  CreateEnvironmentResponse,
+  ListEnvironmentsResponse,
 } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import {
@@ -14,9 +14,8 @@ import {
 import type { AuthContext, DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
 import { isUserKey, hasScope } from "../middleware/auth.js";
-import type { CreateConfigInput } from "../validation/schemas.js";
+import type { CreateEnvironmentInput } from "../validation/schemas.js";
 
-/** Resolve a project by name → { id, name } or return error Response. */
 export async function resolveProject(
   db: DrizzleD1Database,
   _derivedKeys: DerivedKeys,
@@ -29,32 +28,31 @@ export async function resolveProject(
   return { id: project.id, name: projectName };
 }
 
-/** Resolve an environment by name within a project → { id, name } or error Response. */
 export async function resolveEnvironment(
   db: DrizzleD1Database,
   _derivedKeys: DerivedKeys,
   projectId: string,
-  configName: string
+  environmentName: string
 ): Promise<{ id: string; name: string } | Response> {
-  const environment = await getEnvironmentByName(db, projectId, configName);
+  const environment = await getEnvironmentByName(db, projectId, environmentName);
   if (!environment) {
-    return jsonError("NOT_FOUND", `Config "${configName}" not found`, 404);
+    return jsonError("NOT_FOUND", `Environment "${environmentName}" not found`, 404);
   }
-  return { id: environment.id, name: configName };
+  return { id: environment.id, name: environmentName };
 }
 
-export async function handleCreateConfig(
+export async function handleCreateEnvironment(
   _request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  body: CreateConfigInput
+  body: CreateEnvironmentInput
 ): Promise<Response> {
   if (!isUserKey(auth)) {
     return jsonError(
       "FORBIDDEN",
-      "Only user keys can create configs",
+      "Only user keys can create environments",
       403
     );
   }
@@ -64,7 +62,6 @@ export async function handleCreateConfig(
 
   const name = body.name.trim();
 
-  // Check for duplicate
   const existing = await getEnvironmentByName(
     db,
     projectResult.id,
@@ -73,7 +70,7 @@ export async function handleCreateConfig(
   if (existing) {
     return jsonError(
       "CONFLICT",
-      `Config "${name}" already exists in project "${projectName}"`,
+      `Environment "${name}" already exists in project "${projectName}"`,
       409
     );
   }
@@ -88,7 +85,7 @@ export async function handleCreateConfig(
     createdAt: now,
   });
 
-  return jsonOk<CreateConfigResponse>(
+  return jsonOk<CreateEnvironmentResponse>(
     {
       id,
       name,
@@ -99,7 +96,7 @@ export async function handleCreateConfig(
   );
 }
 
-export async function handleListConfigs(
+export async function handleListEnvironments(
   request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
@@ -110,18 +107,17 @@ export async function handleListConfigs(
   if (projectResult instanceof Response) return projectResult;
 
   const rows = await listEnvironments(db, projectResult.id);
-  const configs = [];
+  const environments = [];
 
   for (const row of rows) {
     const name = row.name;
 
-    // If system key, filter by scope
     if (auth.keyType === "system") {
       if (!hasScope(auth, projectName, name)) continue;
     }
 
     const secretCount = await countSecrets(db, row.id);
-    configs.push({
+    environments.push({
       id: row.id,
       name,
       secret_count: secretCount,
@@ -129,21 +125,21 @@ export async function handleListConfigs(
     });
   }
 
-  return jsonOk<ListConfigsResponse>({ configs });
+  return jsonOk<ListEnvironmentsResponse>({ environments });
 }
 
-export async function handleDeleteConfig(
+export async function handleDeleteEnvironment(
   request: Request,
   db: DrizzleD1Database,
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string
+  environmentName: string
 ): Promise<Response> {
   if (!isUserKey(auth)) {
     return jsonError(
       "FORBIDDEN",
-      "Only user keys can delete configs",
+      "Only user keys can delete environments",
       403
     );
   }
@@ -155,14 +151,14 @@ export async function handleDeleteConfig(
     db,
     derivedKeys,
     projectResult.id,
-    configName
+    environmentName
   );
   if (envResult instanceof Response) return envResult;
 
   const secretsRemoved = await deleteEnvironment(db, envResult.id);
 
   return jsonOk({
-    deleted: configName,
+    deleted: environmentName,
     project: projectName,
     secrets_removed: secretsRemoved,
   });

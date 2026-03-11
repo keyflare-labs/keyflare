@@ -26,7 +26,7 @@ npx @keyflare/cli <command>
 | `--api-url <url>` | Override API URL (default: from config) |
 | `--api-key <key>` | Override API key (default: from credentials file or `$KEYFLARE_API_KEY`) |
 | `--project <name>` | Override default project |
-| `--config <name>` | Override default environment |
+| `--env <name>` | Override default environment |
 | `--help` | Show help |
 | `--version` | Show version |
 
@@ -113,19 +113,19 @@ kfl projects delete <name>
 
 ---
 
-### `kfl configs`
+### `kfl environments` (alias: `env`)
 
-Manage environments (configs).
+Manage environments.
 
 ```bash
 # List environments in a project
-kfl configs list --project <name>
+kfl env list --project <name>
 
 # Create an environment
-kfl configs create <env-name> --project <name>
+kfl env create <env-name> --project <name>
 
 # Delete an environment
-kfl configs delete <env-name> --project <name>
+kfl env delete <env-name> --project <name>
 ```
 
 ---
@@ -136,17 +136,17 @@ Manage secrets.
 
 ```bash
 # Set secrets
-kfl secrets set <KEY>=<VALUE> --project <name> --config <env>
-kfl secrets set KEY1=val1 KEY2=val2 --project <name> --config <env>
+kfl secrets set <KEY>=<VALUE> --project <name> --env <env>
+kfl secrets set KEY1=val1 KEY2=val2 --project <name> --env <env>
 
 # Get a secret
-kfl secrets get <KEY> --project <name> --config <env>
+kfl secrets get <KEY> --project <name> --env <env>
 
 # List secrets (values hidden)
-kfl secrets list --project <name> --config <env>
+kfl secrets list --project <name> --env <env>
 
 # Delete a secret
-kfl secrets delete <KEY> --project <name> --config <env>
+kfl secrets delete <KEY> --project <name> --env <env>
 ```
 
 ---
@@ -156,7 +156,7 @@ kfl secrets delete <KEY> --project <name> --config <env>
 Upload a `.env` file (full override).
 
 ```bash
-kfl upload <file> --project <name> --config <env>
+kfl upload <file> --project <name> --env <env>
 ```
 
 <Warning>
@@ -170,7 +170,7 @@ kfl upload <file> --project <name> --config <env>
 Download secrets in various formats.
 
 ```bash
-kfl download --project <name> --config <env> [options]
+kfl download --project <name> --env <env> [options]
 ```
 
 | Option | Description |
@@ -185,13 +185,13 @@ kfl download --project <name> --config <env> [options]
 Run a command with secrets injected as environment variables.
 
 ```bash
-kfl run --project <name> --config <env> -- <command> [args...]
+kfl run --project <name> --env <env> -- <command> [args...]
 ```
 
 Examples:
 ```bash
-kfl run --project my-api --config production -- npm run build
-kfl run --project my-api --config development -- npm run dev
+kfl run --project my-api --env production -- npm run build
+kfl run --project my-api --env development -- npm run dev
 kfl run -- npm run dev  # Uses defaults from config
 ```
 
@@ -260,7 +260,7 @@ kfl dev server [--port <port>]
 | `KEYFLARE_API_URL` | API URL (overrides config file) |
 | `KEYFLARE_LOCAL` | Set to `true` to target `http://localhost:8787` |
 | `KEYFLARE_PROJECT` | Default project |
-| `KEYFLARE_CONFIG` | Default environment |
+| `KEYFLARE_ENV` | Default environment |
 | `CLOUDFLARE_API_TOKEN` | Used by `kfl init` (skips auth prompt) |
 | `DEBUG` | Set to `keyflare` for debug logs |
 

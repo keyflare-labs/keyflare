@@ -17,10 +17,10 @@ import {
   handleDeleteProject,
 } from "./routes/projects.js";
 import {
-  handleCreateConfig,
-  handleListConfigs,
-  handleDeleteConfig,
-} from "./routes/configs.js";
+  handleCreateEnvironment,
+  handleListEnvironments,
+  handleDeleteEnvironment,
+} from "./routes/environments.js";
 import {
   handleGetSecrets,
   handleSetSecrets,
@@ -30,7 +30,7 @@ import type { AppEnv } from "./types.js";
 import { jsonOk, jsonError } from "./utils.js";
 import { jsonValidator } from "./validation/middleware.js";
 import {
-  createConfigSchema,
+  createEnvironmentSchema,
   createKeySchema,
   createProjectSchema,
   patchSecretsSchema,
@@ -47,9 +47,9 @@ import {
   describeCreateProjectRoute,
   describeListProjectsRoute,
   describeDeleteProjectRoute,
-  describeCreateConfigRoute,
-  describeListConfigsRoute,
-  describeDeleteConfigRoute,
+  describeCreateEnvironmentRoute,
+  describeListEnvironmentsRoute,
+  describeDeleteEnvironmentRoute,
   describeGetSecretsRoute,
   describeSetSecretsRoute,
   describePatchSecretsRoute,
@@ -161,71 +161,71 @@ const projectsApp = new Hono<AppEnv>()
     }
   );
 
-const configsApp = new Hono<AppEnv>()
+const environmentsApp = new Hono<AppEnv>()
   .get(
     "/",
-    describeListConfigsRoute(),
+    describeListEnvironmentsRoute(),
     async (c) => {
       const db = c.get("db");
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
-      return handleListConfigs(c.req.raw, db, auth, derivedKeys, project);
+      return handleListEnvironments(c.req.raw, db, auth, derivedKeys, project);
     }
   )
   .post(
     "/",
-    describeCreateConfigRoute(),
-    jsonValidator(createConfigSchema),
+    describeCreateEnvironmentRoute(),
+    jsonValidator(createEnvironmentSchema),
     async (c) => {
       const db = c.get("db");
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
       const body = c.req.valid("json");
-      return handleCreateConfig(c.req.raw, db, auth, derivedKeys, project, body);
+      return handleCreateEnvironment(c.req.raw, db, auth, derivedKeys, project, body);
     }
   )
   .delete(
-    "/:config",
-    describeDeleteConfigRoute(),
+    "/:environment",
+    describeDeleteEnvironmentRoute(),
     async (c) => {
       const db = c.get("db");
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
-      const config = decodeURIComponent(c.req.param("config") ?? "");
-      return handleDeleteConfig(
+      const environment = decodeURIComponent(c.req.param("environment") ?? "");
+      return handleDeleteEnvironment(
         c.req.raw,
         db,
         auth,
         derivedKeys,
         project,
-        config
+        environment
       );
     }
   )
   .get(
-    "/:config/secrets",
+    "/:environment/secrets",
     describeGetSecretsRoute(),
     async (c) => {
       const db = c.get("db");
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
-      const config = decodeURIComponent(c.req.param("config") ?? "");
+      const environment = decodeURIComponent(c.req.param("environment") ?? "");
       return handleGetSecrets(
         c.req.raw,
         db,
         auth,
         derivedKeys,
         project,
-        config
+        environment
       );
     }
   )
   .put(
-    "/:config/secrets",
+    "/:environment/secrets",
     describeSetSecretsRoute(),
     jsonValidator(setSecretsSchema),
     async (c) => {
@@ -233,7 +233,7 @@ const configsApp = new Hono<AppEnv>()
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
-      const config = decodeURIComponent(c.req.param("config") ?? "");
+      const environment = decodeURIComponent(c.req.param("environment") ?? "");
       const body = c.req.valid("json");
       return handleSetSecrets(
         c.req.raw,
@@ -241,13 +241,13 @@ const configsApp = new Hono<AppEnv>()
         auth,
         derivedKeys,
         project,
-        config,
+        environment,
         body
       );
     }
   )
   .patch(
-    "/:config/secrets",
+    "/:environment/secrets",
     describePatchSecretsRoute(),
     jsonValidator(patchSecretsSchema),
     async (c) => {
@@ -255,7 +255,7 @@ const configsApp = new Hono<AppEnv>()
       const auth = c.get("auth");
       const derivedKeys = c.get("derivedKeys");
       const project = decodeURIComponent(c.req.param("project") ?? "");
-      const config = decodeURIComponent(c.req.param("config") ?? "");
+      const environment = decodeURIComponent(c.req.param("environment") ?? "");
       const body = c.req.valid("json");
       return handlePatchSecrets(
         c.req.raw,
@@ -263,13 +263,13 @@ const configsApp = new Hono<AppEnv>()
         auth,
         derivedKeys,
         project,
-        config,
+        environment,
         body
       );
     }
   );
 
-projectsApp.route("/:project/configs", configsApp);
+projectsApp.route("/:project/environments", environmentsApp);
 app.route("/projects", projectsApp);
 
 app.notFound((c) =>

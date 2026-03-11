@@ -193,13 +193,13 @@ describe("Keyflare API", () => {
       );
       expect(res.status).toBe(201);
       const listRes = await get(
-        "/projects/with-defaults/configs",
+        "/projects/with-defaults/environments",
         userKey
       );
       expect(listRes.status).toBe(200);
       const listJson = (await listRes.json()) as any;
-      expect(listJson.data.configs).toHaveLength(2);
-      const names = listJson.data.configs.map((c: any) => c.name).sort();
+      expect(listJson.data.environments).toHaveLength(2);
+      const names = listJson.data.environments.map((c: any) => c.name).sort();
       expect(names).toEqual(["Dev", "Prod"]);
     });
 
@@ -210,10 +210,10 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(res.status).toBe(201);
-      const listRes = await get("/projects/no-defaults/configs", userKey);
+      const listRes = await get("/projects/no-defaults/environments", userKey);
       expect(listRes.status).toBe(200);
       const listJson = (await listRes.json()) as any;
-      expect(listJson.data.configs).toHaveLength(0);
+      expect(listJson.data.environments).toHaveLength(0);
     });
 
     it("list projects shows correct environment_count for default vs environmentless", async () => {
@@ -245,13 +245,13 @@ describe("Keyflare API", () => {
       );
       expect(res.status).toBe(201);
       const listRes = await get(
-        "/projects/explicit-not-envless/configs",
+        "/projects/explicit-not-envless/environments",
         userKey
       );
       expect(listRes.status).toBe(200);
       const listJson = (await listRes.json()) as any;
-      expect(listJson.data.configs).toHaveLength(2);
-      const names = listJson.data.configs.map((c: any) => c.name).sort();
+      expect(listJson.data.environments).toHaveLength(2);
+      const names = listJson.data.environments.map((c: any) => c.name).sort();
       expect(names).toEqual(["Dev", "Prod"]);
     });
 
@@ -262,7 +262,7 @@ describe("Keyflare API", () => {
   });
 
   // ─── Configs ───
-  describe("Configs (Environments)", () => {
+  describe("Environments", () => {
     let userKey: string;
 
     beforeEach(async () => {
@@ -272,9 +272,9 @@ describe("Keyflare API", () => {
       await post("/projects", { name: "my-api", environmentless: true }, userKey);
     });
 
-    it("creates a config", async () => {
+    it("creates an environment", async () => {
       const res = await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
@@ -284,50 +284,50 @@ describe("Keyflare API", () => {
       expect(json.data.project).toBe("my-api");
     });
 
-    it("rejects duplicate config", async () => {
+    it("rejects duplicate environment", async () => {
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
       const res = await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
       expect(res.status).toBe(409);
     });
 
-    it("lists configs", async () => {
+    it("lists environments", async () => {
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "development" },
         userKey
       );
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "staging" },
         userKey
       );
 
-      const res = await get("/projects/my-api/configs", userKey);
+      const res = await get("/projects/my-api/environments", userKey);
       expect(res.status).toBe(200);
       const json = (await res.json()) as any;
-      expect(json.data.configs).toHaveLength(2);
+      expect(json.data.environments).toHaveLength(2);
     });
 
-    it("deletes a config", async () => {
+    it("deletes an environment", async () => {
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "temp" },
         userKey
       );
-      const res = await del("/projects/my-api/configs/temp", userKey);
+      const res = await del("/projects/my-api/environments/temp", userKey);
       expect(res.status).toBe(200);
 
-      const listRes = await get("/projects/my-api/configs", userKey);
+      const listRes = await get("/projects/my-api/environments", userKey);
       const listJson = (await listRes.json()) as any;
-      expect(listJson.data.configs).toHaveLength(0);
+      expect(listJson.data.environments).toHaveLength(0);
     });
   });
 
@@ -341,7 +341,7 @@ describe("Keyflare API", () => {
       userKey = bootstrapJson.data.key;
       await post("/projects", { name: "my-api", environmentless: true }, userKey);
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
@@ -349,7 +349,7 @@ describe("Keyflare API", () => {
 
     it("sets and gets secrets (PUT = full override)", async () => {
       const setRes = await put(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         {
           secrets: {
             DATABASE_URL: "postgres://localhost:5432/db",
@@ -364,7 +364,7 @@ describe("Keyflare API", () => {
 
       // Get secrets
       const getRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         userKey
       );
       expect(getRes.status).toBe(200);
@@ -378,7 +378,7 @@ describe("Keyflare API", () => {
     it("PUT replaces all existing secrets", async () => {
       // Set initial secrets
       await put(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         {
           secrets: { OLD_KEY: "old-value", KEEP: "this" },
         },
@@ -387,7 +387,7 @@ describe("Keyflare API", () => {
 
       // Full override
       await put(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         {
           secrets: { NEW_KEY: "new-value" },
         },
@@ -395,7 +395,7 @@ describe("Keyflare API", () => {
       );
 
       const getRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         userKey
       );
       const getJson = (await getRes.json()) as any;
@@ -409,7 +409,7 @@ describe("Keyflare API", () => {
     it("PATCH upserts and deletes specific secrets", async () => {
       // Set initial
       await put(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         {
           secrets: { A: "1", B: "2", C: "3" },
         },
@@ -418,7 +418,7 @@ describe("Keyflare API", () => {
 
       // Patch: update A, add D, delete B
       const patchRes = await patch(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         {
           set: { A: "updated", D: "4" },
           delete: ["B"],
@@ -433,7 +433,7 @@ describe("Keyflare API", () => {
 
       // Verify
       const getRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         userKey
       );
       const getJson = (await getRes.json()) as any;
@@ -444,9 +444,9 @@ describe("Keyflare API", () => {
       });
     });
 
-    it("returns empty secrets for new config", async () => {
+    it("returns empty secrets for new environment", async () => {
       const res = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         userKey
       );
       expect(res.status).toBe(200);
@@ -456,15 +456,15 @@ describe("Keyflare API", () => {
 
     it("returns 404 for secrets in non-existent project", async () => {
       const res = await get(
-        "/projects/nope/configs/production/secrets",
+        "/projects/nope/environments/production/secrets",
         userKey
       );
       expect(res.status).toBe(404);
     });
 
-    it("returns 404 for secrets in non-existent config", async () => {
+    it("returns 404 for secrets in non-existent environment", async () => {
       const res = await get(
-        "/projects/my-api/configs/nope/secrets",
+        "/projects/my-api/environments/nope/secrets",
         userKey
       );
       expect(res.status).toBe(404);
@@ -553,10 +553,10 @@ describe("Keyflare API", () => {
     });
 
     it("system key with read cannot write secrets", async () => {
-      // Setup project + config
+      // Setup project + environment
       await post("/projects", { name: "my-api" }, userKey);
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
@@ -576,14 +576,14 @@ describe("Keyflare API", () => {
 
       // Reading should work
       const readRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         sysKey
       );
       expect(readRes.status).toBe(200);
 
       // Writing should be forbidden
       const writeRes = await put(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         { secrets: { FOO: "bar" } },
         sysKey
       );
@@ -593,13 +593,13 @@ describe("Keyflare API", () => {
     it("system key cannot access out-of-scope project", async () => {
       await post("/projects", { name: "my-api" }, userKey);
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
       await post("/projects", { name: "other" }, userKey);
       await post(
-        "/projects/other/configs",
+        "/projects/other/environments",
         { name: "production" },
         userKey
       );
@@ -619,14 +619,14 @@ describe("Keyflare API", () => {
 
       // In-scope should work
       const okRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         sysKey
       );
       expect(okRes.status).toBe(200);
 
       // Out-of-scope should be forbidden
       const nopeRes = await get(
-        "/projects/other/configs/production/secrets",
+        "/projects/other/environments/production/secrets",
         sysKey
       );
       expect(nopeRes.status).toBe(403);
@@ -635,12 +635,12 @@ describe("Keyflare API", () => {
     it("system key with wildcard env can access any env in project", async () => {
       await post("/projects", { name: "my-api" }, userKey);
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "production" },
         userKey
       );
       await post(
-        "/projects/my-api/configs",
+        "/projects/my-api/environments",
         { name: "staging" },
         userKey
       );
@@ -658,13 +658,13 @@ describe("Keyflare API", () => {
       const sysKey = ((await keyRes.json()) as any).data.key;
 
       const prodRes = await get(
-        "/projects/my-api/configs/production/secrets",
+        "/projects/my-api/environments/production/secrets",
         sysKey
       );
       expect(prodRes.status).toBe(200);
 
       const stagingRes = await get(
-        "/projects/my-api/configs/staging/secrets",
+        "/projects/my-api/environments/staging/secrets",
         sysKey
       );
       expect(stagingRes.status).toBe(200);
@@ -962,10 +962,10 @@ describe("Keyflare API", () => {
       });
 
       it("updated permission takes effect immediately", async () => {
-        // Setup project + config
+        // Setup project + environment
         await post("/projects", { name: "test-proj" }, userKey);
         await post(
-          "/projects/test-proj/configs",
+          "/projects/test-proj/environments",
           { name: "production" },
           userKey
         );
@@ -987,13 +987,13 @@ describe("Keyflare API", () => {
 
         // Verify it can read but not write
         const readRes = await get(
-          "/projects/test-proj/configs/production/secrets",
+          "/projects/test-proj/environments/production/secrets",
           sysKey
         );
         expect(readRes.status).toBe(200);
 
         const writeRes = await put(
-          "/projects/test-proj/configs/production/secrets",
+          "/projects/test-proj/environments/production/secrets",
           { secrets: { TEST: "value" } },
           sysKey
         );
@@ -1011,7 +1011,7 @@ describe("Keyflare API", () => {
 
         // Now writing should work
         const writeRes2 = await put(
-          "/projects/test-proj/configs/production/secrets",
+          "/projects/test-proj/environments/production/secrets",
           { secrets: { TEST: "value" } },
           sysKey
         );
@@ -1021,9 +1021,9 @@ describe("Keyflare API", () => {
       it("updated scopes take effect immediately", async () => {
         // Setup two projects
         await post("/projects", { name: "project-a" }, userKey);
-        await post("/projects/project-a/configs", { name: "prod" }, userKey);
+        await post("/projects/project-a/environments", { name: "prod" }, userKey);
         await post("/projects", { name: "project-b" }, userKey);
-        await post("/projects/project-b/configs", { name: "prod" }, userKey);
+        await post("/projects/project-b/environments", { name: "prod" }, userKey);
 
         // Create key scoped to project-a only
         const createRes = await post(
@@ -1041,11 +1041,11 @@ describe("Keyflare API", () => {
         const sysKey = createJson.data.key;
 
         // Can access project-a
-        const aRes = await get("/projects/project-a/configs/prod/secrets", sysKey);
+        const aRes = await get("/projects/project-a/environments/prod/secrets", sysKey);
         expect(aRes.status).toBe(200);
 
         // Cannot access project-b
-        const bRes = await get("/projects/project-b/configs/prod/secrets", sysKey);
+        const bRes = await get("/projects/project-b/environments/prod/secrets", sysKey);
         expect(bRes.status).toBe(403);
 
         // Update to include project-b
@@ -1062,10 +1062,10 @@ describe("Keyflare API", () => {
         );
 
         // Now can access both
-        const aRes2 = await get("/projects/project-a/configs/prod/secrets", sysKey);
+        const aRes2 = await get("/projects/project-a/environments/prod/secrets", sysKey);
         expect(aRes2.status).toBe(200);
 
-        const bRes2 = await get("/projects/project-b/configs/prod/secrets", sysKey);
+        const bRes2 = await get("/projects/project-b/environments/prod/secrets", sysKey);
         expect(bRes2.status).toBe(200);
       });
     });
@@ -1073,7 +1073,7 @@ describe("Keyflare API", () => {
 
   // ─── End-to-end flow ───
   describe("End-to-end flow", () => {
-    it("full lifecycle: bootstrap > project > config > secrets > delete", async () => {
+    it("full lifecycle: bootstrap > project > environment > secrets > delete", async () => {
       // 1. Bootstrap
       const bootstrapRes = await post("/bootstrap");
       const userKey = ((await bootstrapRes.json()) as any).data.key;
@@ -1088,19 +1088,19 @@ describe("Keyflare API", () => {
 
       // 3. Create configs
       await post(
-        "/projects/webapp/configs",
+        "/projects/webapp/environments",
         { name: "development" },
         userKey
       );
       await post(
-        "/projects/webapp/configs",
+        "/projects/webapp/environments",
         { name: "production" },
         userKey
       );
 
       // 4. Set secrets in development
       await put(
-        "/projects/webapp/configs/development/secrets",
+        "/projects/webapp/environments/development/secrets",
         {
           secrets: {
             DB_HOST: "localhost",
@@ -1113,7 +1113,7 @@ describe("Keyflare API", () => {
 
       // 5. Set different secrets in production
       await put(
-        "/projects/webapp/configs/production/secrets",
+        "/projects/webapp/environments/production/secrets",
         {
           secrets: {
             DB_HOST: "prod-db.example.com",
@@ -1141,7 +1141,7 @@ describe("Keyflare API", () => {
 
       // 7. System key can read production secrets
       const prodSecretsRes = await get(
-        "/projects/webapp/configs/production/secrets",
+        "/projects/webapp/environments/production/secrets",
         sysKey
       );
       expect(prodSecretsRes.status).toBe(200);
@@ -1151,14 +1151,14 @@ describe("Keyflare API", () => {
 
       // 8. System key CANNOT read development secrets
       const devSecretsRes = await get(
-        "/projects/webapp/configs/development/secrets",
+        "/projects/webapp/environments/development/secrets",
         sysKey
       );
       expect(devSecretsRes.status).toBe(403);
 
       // 9. System key CANNOT write
       const writeRes = await put(
-        "/projects/webapp/configs/production/secrets",
+        "/projects/webapp/environments/production/secrets",
         { secrets: { HACK: "true" } },
         sysKey
       );

@@ -16,7 +16,7 @@ import {
 import type { AuthContext, DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
 import { hasScope, canWrite } from "../middleware/auth.js";
-import { resolveProject, resolveEnvironment } from "./configs.js";
+import { resolveProject, resolveEnvironment } from "./environments.js";
 import type { SetSecretsInput, PatchSecretsInput } from "../validation/schemas.js";
 
 export async function handleGetSecrets(
@@ -25,10 +25,10 @@ export async function handleGetSecrets(
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string
+  environmentName: string
 ): Promise<Response> {
   // Scope check
-  if (auth.keyType === "system" && !hasScope(auth, projectName, configName)) {
+  if (auth.keyType === "system" && !hasScope(auth, projectName, environmentName)) {
     return jsonError("FORBIDDEN", "Key does not have access to this scope", 403);
   }
 
@@ -39,7 +39,7 @@ export async function handleGetSecrets(
     db,
     derivedKeys,
     projectResult.id,
-    configName
+    environmentName
   );
   if (envResult instanceof Response) return envResult;
 
@@ -68,12 +68,12 @@ export async function handleSetSecrets(
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string,
+  environmentName: string,
   body: SetSecretsInput
 ): Promise<Response> {
   // Scope + write check
   if (auth.keyType === "system") {
-    if (!hasScope(auth, projectName, configName)) {
+    if (!hasScope(auth, projectName, environmentName)) {
       return jsonError(
         "FORBIDDEN",
         "Key does not have access to this scope",
@@ -92,7 +92,7 @@ export async function handleSetSecrets(
     db,
     derivedKeys,
     projectResult.id,
-    configName
+    environmentName
   );
   if (envResult instanceof Response) return envResult;
 
@@ -121,7 +121,7 @@ export async function handleSetSecrets(
   return jsonOk<SetSecretsResponse>({
     count,
     project: projectName,
-    config: configName,
+    environment: environmentName,
   });
 }
 
@@ -131,12 +131,12 @@ export async function handlePatchSecrets(
   auth: AuthContext,
   derivedKeys: DerivedKeys,
   projectName: string,
-  configName: string,
+  environmentName: string,
   body: PatchSecretsInput
 ): Promise<Response> {
   // Scope + write check
   if (auth.keyType === "system") {
-    if (!hasScope(auth, projectName, configName)) {
+    if (!hasScope(auth, projectName, environmentName)) {
       return jsonError(
         "FORBIDDEN",
         "Key does not have access to this scope",
@@ -155,7 +155,7 @@ export async function handlePatchSecrets(
     db,
     derivedKeys,
     projectResult.id,
-    configName
+    environmentName
   );
   if (envResult instanceof Response) return envResult;
 
