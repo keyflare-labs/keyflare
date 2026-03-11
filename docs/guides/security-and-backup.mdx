@@ -14,17 +14,15 @@ curl https://keyflare.your-account.workers.dev/health
 
 ## Worker Logs
 
-```bash
-# Real-time logs
-cd packages/server && npx wrangler tail
+Real-time logs and error traces are available in the **Cloudflare dashboard**:
 
-# Errors only
-npx wrangler tail --status error
-```
+1. Go to **Workers & Pages** → select your `keyflare` Worker
+2. Open the **Logs** tab
+3. Filter by status, outcome, or time range
 
 ## D1 Metrics
 
-Available in Cloudflare dashboard under **Workers & Pages → D1**:
+Available in the Cloudflare dashboard under **Storage → D1**:
 
 - Query count
 - Rows read/written
@@ -35,12 +33,15 @@ Available in Cloudflare dashboard under **Workers & Pages → D1**:
 
 ## D1 Backup
 
-Cloudflare automatically backs up D1. Export manually:
+Cloudflare automatically backs up D1. To export your database manually, run:
 
 ```bash
-cd packages/server
 npx wrangler d1 export keyflare --output backup.sql
 ```
+
+If you deployed a custom-named instance, replace `keyflare` with your Worker name (e.g., `keyflare-prod`).
+
+Store the resulting `backup.sql` file in a secure location outside of Cloudflare.
 
 ## Master Key Backup
 
@@ -56,21 +57,21 @@ Recommended storage:
 
 **Never store in:**
 
-- Git repository
+- Git repositories
 - Plain text files
 - CI environment variables
 - The D1 database itself
 
 ## Disaster Recovery
 
-| Scenario               | Recovery                                                                  |
-| ---------------------- | ------------------------------------------------------------------------- |
-| Worker deleted         | Redeploy via `wrangler deploy`. Push MASTER_KEY again. D1 data is intact. |
-| D1 data corrupted      | Restore from Cloudflare automatic backups.                                |
-| D1 deleted             | Restore from `backup.sql` + push MASTER_KEY.                              |
-| MASTER_KEY lost        | **Unrecoverable.** Create new instance, re-upload all secrets.            |
-| MASTER_KEY compromised | Revoke all API keys. Create new instance. Re-upload secrets.              |
-| API key compromised    | `kfl keys revoke <prefix>` — instant effect.                              |
+| Scenario               | Recovery                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| Worker deleted         | Run `kfl init` (or `kfl init --name <name>` for custom instances). Your D1 data remains intact. |
+| D1 data corrupted      | Restore from Cloudflare's automatic backups via the dashboard.                                   |
+| D1 deleted             | Restore `backup.sql` into a new D1 database, then run `kfl init --d1id <new-db-uuid>`.          |
+| MASTER_KEY lost        | **Unrecoverable.** Create a new instance with `kfl init`, then re-upload all secrets.            |
+| MASTER_KEY compromised | Revoke all API keys. Create a new instance with `kfl init`. Re-upload all secrets.               |
+| API key compromised    | `kfl keys revoke <prefix>` — takes effect immediately.                                           |
 
 # Security Checklist
 
