@@ -41,9 +41,13 @@ export async function handleCreateKey(
 
   let encryptedScopes: string | null = null;
   if (body.type === "system" && body.scopes) {
+    const normalizedScopes = body.scopes.map(s => ({
+      project: s.project.toLowerCase(),
+      environment: s.environment.toLowerCase()
+    }));
     encryptedScopes = await encrypt(
       derivedKeys.encryptionKey,
-      JSON.stringify(body.scopes)
+      JSON.stringify(normalizedScopes)
     );
   }
 
@@ -66,7 +70,7 @@ export async function handleCreateKey(
     prefix: keyPrefix,
     type: body.type,
     label: body.label,
-    scopes: body.scopes ?? null,
+    scopes: body.scopes?.map(s => ({ project: s.project.toLowerCase(), environment: s.environment.toLowerCase() })) ?? null,
     permission: permissions,
   });
 }
@@ -167,9 +171,13 @@ export async function handleUpdateKey(
   }
 
   // Encrypt the new scopes
+  const normalizedScopes = body.scopes.map(s => ({
+    project: s.project.toLowerCase(),
+    environment: s.environment.toLowerCase()
+  }));
   const encryptedScopes = await encrypt(
     derivedKeys.encryptionKey,
-    JSON.stringify(body.scopes)
+    JSON.stringify(normalizedScopes)
   );
 
   // Update the key
@@ -192,7 +200,7 @@ export async function handleUpdateKey(
     prefix,
     type: existingKey.type as "user" | "system",
     label,
-    scopes: body.scopes,
+    scopes: normalizedScopes,
     permission: body.permission,
   });
 }

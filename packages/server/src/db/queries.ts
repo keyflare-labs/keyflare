@@ -96,10 +96,11 @@ export async function getProjectByName(
   db: DrizzleD1Database,
   name: string
 ): Promise<ProjectRow | undefined> {
+  const normalizedName = name.toLowerCase();
   const rows = await db
     .select()
     .from(projects)
-    .where(eq(projects.name, name))
+    .where(eq(projects.name, normalizedName))
     .limit(1);
   return rows[0];
 }
@@ -162,13 +163,14 @@ export async function getEnvironmentByName(
   projectId: string,
   name: string
 ): Promise<EnvironmentRow | undefined> {
+  const normalizedName = name.toLowerCase();
   const rows = await db
     .select()
     .from(environments)
     .where(
       and(
         eq(environments.projectId, projectId),
-        eq(environments.name, name)
+        eq(environments.name, normalizedName)
       )
     )
     .limit(1);

@@ -114,7 +114,7 @@ projects
   .description("Create a new project")
   .option(
     "--environmentless",
-    "Create project without default Dev/Prod environments",
+    "Create project without default dev/prod environments",
   )
   .action(async (name: string, opts) => {
     await runProjectsCreate(name, opts).catch(handleError);

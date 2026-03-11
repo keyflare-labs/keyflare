@@ -1460,7 +1460,7 @@
       },
       "post": {
         "operationId": "postProjects",
-        "description": "Create a new project. Creates Dev and Prod environments by default unless environmentless is true.",
+        "description": "Create a new project. Creates dev and prod environments by default unless environmentless is true. Project and environment names are case-insensitive.",
         "tags": [
           "Projects"
         ],

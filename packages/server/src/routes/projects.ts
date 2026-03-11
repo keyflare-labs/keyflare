@@ -28,7 +28,7 @@ export async function handleCreateProject(
     return jsonError("FORBIDDEN", "Only user keys can create projects", 403);
   }
 
-  const name = body.name.trim();
+  const name = body.name.trim().toLowerCase();
   const environmentless = body.environmentless === true;
 
   // Check for duplicate
@@ -47,7 +47,7 @@ export async function handleCreateProject(
   });
 
   if (!environmentless) {
-    const defaultEnvNames = ["Dev", "Prod"];
+    const defaultEnvNames = ["dev", "prod"];
     for (const envName of defaultEnvNames) {
       await insertEnvironment(db, {
         id: crypto.randomUUID(),
@@ -75,7 +75,7 @@ export async function handleListProjects(
 
     // If system key, filter to scoped projects only
     if (auth.keyType === "system" && auth.scopes) {
-      if (!auth.scopes.some((s) => s.project === name)) continue;
+      if (!auth.scopes.some((s) => s.project.toLowerCase() === name)) continue;
     }
 
     const envCount = await countEnvironments(db, row.id);

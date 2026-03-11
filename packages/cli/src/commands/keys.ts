@@ -74,7 +74,7 @@ export async function runKeysCreate(opts: {
         `Invalid scope "${s}" — expected format: project:environment`
       );
     }
-    return { project, environment };
+    return { project: project.toLowerCase(), environment: environment.toLowerCase() };
   });
 
   const body: Record<string, unknown> = {
@@ -108,7 +108,7 @@ export async function runKeysUpdate(prefix: string, opts: {
         `Invalid scope "${s}" — expected format: project:environment`
       );
     }
-    return { project, environment };
+    return { project: project.toLowerCase(), environment: environment.toLowerCase() };
   });
 
   const body = {

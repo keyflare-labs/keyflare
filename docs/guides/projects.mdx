@@ -97,22 +97,22 @@ kfl env delete staging --project my-api
 ```bash
 # 1. Create the project
 kfl projects create my-api
-# ✓ Project "my-api" created with environments: Dev, Prod
+# ✓ Project "my-api" created with environments: dev, prod
 
 # 2. Add a staging environment
 kfl env create staging --project my-api
 # ✓ Environment "staging" created in project "my-api"
 
 # 3. Add secrets to each environment
-kfl secrets set DATABASE_URL=postgres://dev... --project my-api --env Dev
+kfl secrets set DATABASE_URL=postgres://dev... --project my-api --env dev
 kfl secrets set DATABASE_URL=postgres://stage... --project my-api --env staging
-kfl secrets set DATABASE_URL=postgres://prod... --project my-api --env Prod
+kfl secrets set DATABASE_URL=postgres://prod... --project my-api --env prod
 
 # 4. Verify
 kfl env list --project my-api
 # ENVIRONMENT    SECRETS  LAST UPDATED
-# Dev            1        2024-01-17
-# Prod           1        2024-01-17
+# dev            1        2024-01-17
+# prod           1        2024-01-17
 # staging        1        2024-01-17
 ```
 

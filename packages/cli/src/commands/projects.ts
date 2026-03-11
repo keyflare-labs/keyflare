@@ -52,7 +52,7 @@ export async function runProjectsCreate(
         dim(`kfl env create prod --project ${data.name}`),
     );
   } else {
-    success(`Project "${data.name}" created with environments: Dev, Prod`);
+    success(`Project "${data.name}" created with environments: dev, prod`);
   }
 }
 

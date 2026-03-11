@@ -60,7 +60,7 @@ export async function handleCreateEnvironment(
   const projectResult = await resolveProject(db, derivedKeys, projectName);
   if (projectResult instanceof Response) return projectResult;
 
-  const name = body.name.trim();
+  const name = body.name.trim().toLowerCase();
 
   const existing = await getEnvironmentByName(
     db,

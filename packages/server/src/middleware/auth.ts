@@ -71,10 +71,13 @@ export function hasScope(
   if (auth.keyType === "user") return true;
   if (!auth.scopes) return false;
 
+  const projectLower = project.toLowerCase();
+  const environmentLower = environment.toLowerCase();
+
   return auth.scopes.some(
     (s) =>
-      s.project === project &&
-      (s.environment === "*" || s.environment === environment)
+      s.project.toLowerCase() === projectLower &&
+      (s.environment.toLowerCase() === "*" || s.environment.toLowerCase() === environmentLower)
   );
 }
 
