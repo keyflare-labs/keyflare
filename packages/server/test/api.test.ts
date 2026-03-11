@@ -200,7 +200,7 @@ describe("Keyflare API", () => {
       const listJson = (await listRes.json()) as any;
       expect(listJson.data.environments).toHaveLength(2);
       const names = listJson.data.environments.map((c: any) => c.name).sort();
-      expect(names).toEqual(["Dev", "Prod"]);
+      expect(names).toEqual(["dev", "prod"]);
     });
 
     it("creates a project with environmentless: true without default environments", async () => {
@@ -252,7 +252,7 @@ describe("Keyflare API", () => {
       const listJson = (await listRes.json()) as any;
       expect(listJson.data.environments).toHaveLength(2);
       const names = listJson.data.environments.map((c: any) => c.name).sort();
-      expect(names).toEqual(["Dev", "Prod"]);
+      expect(names).toEqual(["dev", "prod"]);
     });
 
     it("returns 404 when deleting non-existent project", async () => {

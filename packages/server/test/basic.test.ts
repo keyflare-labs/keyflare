@@ -207,7 +207,7 @@ describe("Basic smoke tests", () => {
     };
     expect(listJson.data.environments).toHaveLength(2);
     const names = listJson.data.environments.map((c) => c.name).sort();
-    expect(names).toEqual(["Dev", "Prod"]);
+    expect(names).toEqual(["dev", "prod"]);
   });
 
   it("POST /projects with environmentless creates project without environments", async () => {
