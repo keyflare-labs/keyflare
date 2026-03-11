@@ -6,6 +6,8 @@
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "dev": "pnpm --filter @keyflare/server dev",
+    "dev:init": "tsx packages/cli/scripts/local-dev.ts init",
+    "dev:server": "tsx packages/cli/scripts/local-dev.ts server",
     "studio": "pnpm --filter @keyflare/server db:studio",
     "setup": "pnpm install && pnpm --filter @keyflare/cli build:fast && pnpm install",
     "build": "pnpm -r build",

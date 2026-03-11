@@ -2,7 +2,6 @@
 import { Command } from "commander";
 import { runInit, killActiveChild } from "./commands/init.js";
 import { runLogin } from "./commands/login.js";
-import { runDevServer, runDevInit } from "./commands/dev.js";
 import {
   runProjectsList,
   runProjectsCreate,
@@ -87,36 +86,6 @@ program
   )
   .action(async () => {
     await runLogin().catch(handleError);
-  });
-
-// ─── kfl dev ─────────────────────────────────────────────────
-const dev = program
-  .command("dev")
-  .description("Local development helpers (no Cloudflare account required)")
-  .action(() => dev.help());
-
-dev
-  .command("init")
-  .description(
-    "Set up a local Keyflare instance. Generates a local master key, " +
-      "applies migrations, bootstraps the DB, and saves credentials " +
-      "pointing at http://localhost:8787.\n\n" +
-      "Set KEYFLARE_LOCAL=true to make all other kfl commands use localhost."
-  )
-  .option("--force", "Regenerate the local master key")
-  .action(async (opts) => {
-    await runDevInit(opts).catch(handleError);
-  });
-
-dev
-  .command("server")
-  .description(
-    "Start the Keyflare server locally via wrangler dev (port 8787).\n" +
-      "Run `kfl dev init` first to set up the local database."
-  )
-  .option("--port <port>", "Port to listen on", "8787")
-  .action(async (opts) => {
-    await runDevServer({ port: parseInt(opts.port, 10) }).catch(handleError);
   });
 
 // ─── kfl projects ────────────────────────────────────────────

@@ -48,7 +48,6 @@
                 "group": "Advanced",
                 "pages": [
                   "custom-master-key",
-                  "guides/local-development",
                   "guides/deployment"
                 ]
               }

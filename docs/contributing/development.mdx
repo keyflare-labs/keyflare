@@ -78,10 +78,10 @@ The fastest way to get a local Keyflare instance running:
 
 ```bash
 # One-time setup
-pnpm kfl dev init
+pnpm run dev:init
 
 # Start the local server (separate terminal)
-pnpm kfl dev server
+pnpm run dev:server
 # → Keyflare listening at http://localhost:8787
 
 # Point all kfl commands at local server
@@ -91,7 +91,7 @@ export KEYFLARE_API_KEY=kfl_user_<key-from-dev-init>
 
 ### Manual Local Setup
 
-Alternative to `kfl dev init`:
+Alternative to `pnpm run dev:init`:
 
 ```bash
 # Copy example dev vars
