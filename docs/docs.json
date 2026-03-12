@@ -109,5 +109,11 @@
   },
   "seo": {
     "indexing": "navigable"
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_4dVA2SxNRjrRbvvvfxPjZTphle6bZ38xrMiqhHl9O3t",
+      "apiHost": "https://eu.i.posthog.com"
+    }
   }
 }
