@@ -59,9 +59,7 @@ jobs:
           fi
 
       - name: Publish CLI to npm
-        run: pnpm publish packages/cli --no-git-checks --access public --tag ${{ steps.dist-tag.outputs.tag }}
-        # TODO: enable this once the repo is public
-        # --provenance
+        run: pnpm publish packages/cli --no-git-checks --access public --tag ${{ steps.dist-tag.outputs.tag }} --provenance
 
       - name: Commit version update to source branch
         run: |

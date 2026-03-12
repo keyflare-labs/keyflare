@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Keyflare CLI — kfl",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keyflare-labs/keyflare.git"
+  },
   "bin": {
     "kfl": "dist/index.js"
   },
