@@ -9,6 +9,7 @@ import type {
 } from "@keyflare/shared";
 import { api } from "../api/client.js";
 import { success, dim, bold } from "../output/log.js";
+import { getWranglerEmail } from "../wrangler.js";
 
 export async function runKeysList() {
   const data = await api.get<ListKeysResponse>("/keys");
@@ -21,24 +22,25 @@ export async function runKeysList() {
 
   const prefixW = Math.max(6, ...keys.map((k) => k.prefix.length));
   const labelW = Math.max(5, ...keys.map((k) => k.label.length));
+  const emailW = Math.max(5, ...keys.map((k) => (k.user_email ?? "-").length));
 
   console.log(
     bold(
-      `${"PREFIX".padEnd(prefixW)}  ${"TYPE".padEnd(6)}  ${"LABEL".padEnd(labelW)}  ${"PERMISSION".padEnd(10)}  ${"SCOPES".padEnd(20)}  CREATED`
+      `${"PREFIX".padEnd(prefixW)}  ${"TYPE".padEnd(6)}  ${"LABEL".padEnd(labelW)}  ${"EMAIL".padEnd(emailW)}  ${"PERMISSION".padEnd(10)}  ${"SCOPES".padEnd(20)}  CREATED`
     )
   );
   for (const k of keys) {
     const created = new Date(k.created_at).toISOString().slice(0, 10);
     const revokedMark = k.revoked ? " [REVOKED]" : "";
 
-    // Format permission and scopes
     const permission = k.type === "user" ? "full" : (k.permission ?? "read");
     const scopes = k.scopes
       ? k.scopes.map((s) => `${s.project}:${s.environment}`).join(", ")
       : (k.type === "user" ? "*" : "-");
+    const email = k.user_email ?? "-";
 
     console.log(
-      `${k.prefix.padEnd(prefixW)}  ${k.type.padEnd(6)}  ${k.label.padEnd(labelW)}  ${permission.padEnd(10)}  ${scopes.padEnd(20)}  ${created}${revokedMark}`
+      `${k.prefix.padEnd(prefixW)}  ${k.type.padEnd(6)}  ${k.label.padEnd(labelW)}  ${email.padEnd(emailW)}  ${permission.padEnd(10)}  ${scopes.padEnd(20)}  ${created}${revokedMark}`
     );
   }
 }
@@ -77,12 +79,15 @@ export async function runKeysCreate(opts: {
     return { project: project.toLowerCase(), environment: environment.toLowerCase() };
   });
 
+  const userEmail = getWranglerEmail();
+
   const body: Record<string, unknown> = {
     type: opts.type,
     label: opts.label,
   };
   if (scopes) body.scopes = scopes;
   if (opts.permission) body.permission = opts.permission;
+  if (userEmail) body.user_email = userEmail;
 
   const data = await api.post<CreateKeyResponse>("/keys", body);
 

@@ -30,6 +30,17 @@ export async function handleBootstrap(
     );
   }
 
+  // Parse optional body for user_email
+  let userEmail: string | null = null;
+  try {
+    const body = (await request.json()) as { user_email?: string };
+    if (body.user_email && typeof body.user_email === "string") {
+      userEmail = body.user_email;
+    }
+  } catch {
+    // No body or invalid JSON — that's fine, user_email stays null
+  }
+
   // Generate a user key
   const randomHex = generateRandomHex(KEY_RANDOM_HEX_LENGTH);
   const fullKey = `${USER_KEY_PREFIX}${randomHex}`;
@@ -47,6 +58,7 @@ export async function handleBootstrap(
     label: encryptedLabel,
     scopes: null,
     permissions: "full",
+    userEmail,
     createdAt: new Date().toISOString(),
   });
 
@@ -55,6 +67,7 @@ export async function handleBootstrap(
     prefix,
     type: "user",
     label,
+    user_email: userEmail,
   });
 }
 

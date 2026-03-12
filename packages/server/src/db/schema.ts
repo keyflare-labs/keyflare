@@ -10,6 +10,7 @@ export const apiKeys = sqliteTable("api_keys", {
   label: text("label"),
   scopes: text("scopes"),
   permissions: text("permissions", { enum: ["read", "readwrite", "full"] }).notNull(),
+  userEmail: text("user_email"),
   createdAt: text("created_at").notNull(),
   lastUsedAt: text("last_used_at"),
   revoked: integer("revoked", { mode: "number" }).default(0).notNull(),

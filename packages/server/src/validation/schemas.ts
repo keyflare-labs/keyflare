@@ -28,6 +28,7 @@ export const createKeySchema = z
     label: nonEmptyString,
     scopes: z.array(keyScopeSchema).optional(),
     permission: z.enum(["read", "readwrite"]).optional(),
+    user_email: z.string().email().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {

@@ -54,6 +54,8 @@ export async function handleCreateKey(
   const permissions =
     body.type === "user" ? "full" : (body.permission ?? "read");
 
+  const userEmail = body.user_email ?? null;
+
   await insertKey(db, {
     id: crypto.randomUUID(),
     keyPrefix,
@@ -62,6 +64,7 @@ export async function handleCreateKey(
     label: encryptedLabel,
     scopes: encryptedScopes,
     permissions,
+    userEmail,
     createdAt: new Date().toISOString(),
   });
 
@@ -72,6 +75,7 @@ export async function handleCreateKey(
     label: body.label,
     scopes: body.scopes?.map(s => ({ project: s.project.toLowerCase(), environment: s.environment.toLowerCase() })) ?? null,
     permission: permissions,
+    user_email: userEmail,
   });
 }
 
@@ -115,6 +119,7 @@ export async function handleListKeys(
       label,
       scopes,
       permission: row.permissions,
+      user_email: row.userEmail ?? null,
       created_at: row.createdAt,
       last_used_at: row.lastUsedAt,
       revoked: row.revoked === 1,

@@ -9,6 +9,7 @@ import { api, KeyflareApiError } from "../api/client.js";
 import { writeConfig, writeApiKey, readConfig } from "../config.js";
 import { makeDebug, redact } from "../debug.js";
 import { log, success, warn, error, bold, dim } from "../output/log.js";
+import { wranglerBin as sharedWranglerBin, getWranglerEmail } from "../wrangler.js";
 
 const debug = makeDebug("init");
 
@@ -240,30 +241,8 @@ function serverDir(): string {
   return devPath;
 }
 
-/**
- * Resolve the wrangler binary path directly, avoiding npx/npm-exec which
- * adds intermediate processes that swallow SIGINT.
- */
 function wranglerBin(): string {
-  const here = new URL(".", import.meta.url).pathname;
-
-  // When published: wrangler is in CLI's node_modules (sibling to dist/)
-  const publishedBinPath = path.join(here, "..", "node_modules", ".bin", "wrangler");
-  if (fs.existsSync(publishedBinPath)) {
-    debug("resolved wrangler binary (published): %s", publishedBinPath);
-    return publishedBinPath;
-  }
-
-  // When in dev monorepo: wrangler is in server's node_modules
-  const serverBinPath = path.join(serverDir(), "node_modules", ".bin", "wrangler");
-  if (fs.existsSync(serverBinPath)) {
-    debug("resolved wrangler binary (dev): %s", serverBinPath);
-    return serverBinPath;
-  }
-
-  // Fallback: let PATH resolution find it
-  debug("wrangler binary not found, falling back to PATH");
-  return "wrangler";
+  return sharedWranglerBin();
 }
 
 async function wrangler(
@@ -844,7 +823,11 @@ export async function runInit(options: {
 
   let adminKey: string | undefined;
   try {
-    const data = await api.post<BootstrapResponse>("/bootstrap");
+    const userEmail = getWranglerEmail();
+    debug("bootstrap user_email=%s", userEmail ?? "<not found>");
+    const data = await api.post<BootstrapResponse>("/bootstrap", {
+      ...(userEmail ? { user_email: userEmail } : {}),
+    });
     adminKey = data.key;
     debug("bootstrap created admin key (%s)", redact(adminKey));
     bootstrapSpinner.succeed("User key created");
