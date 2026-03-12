@@ -1,10 +1,9 @@
 import { Hono } from "hono";
 import { VERSION } from "@keyflare/shared";
 import type { HealthResponse } from "@keyflare/shared";
-import { describeRoute, resolver } from "hono-openapi";
 import { dbAndKeysMiddleware, authMiddleware } from "./middleware/hono.js";
 import { loggerMiddleware } from "./middleware/logger.js";
-import { handleBootstrap } from "./routes/bootstrap.js";
+import { handleBootstrap, handleBootstrapStatus } from "./routes/bootstrap.js";
 import {
   handleCreateKey,
   handleListKeys,
@@ -39,6 +38,7 @@ import {
 } from "./validation/schemas.js";
 import {
   describeHealthRoute,
+  describeBootstrapStatusRoute,
   describeBootstrapRoute,
   describeCreateKeyRoute,
   describeListKeysRoute,
@@ -63,6 +63,16 @@ app.get(
   "/health",
   describeHealthRoute(),
   (_c) => jsonOk<HealthResponse>({ ok: true, version: VERSION })
+);
+
+app.get(
+  "/bootstrap",
+  describeBootstrapStatusRoute(),
+  dbAndKeysMiddleware,
+  async (c) => {
+    const db = c.get("db");
+    return handleBootstrapStatus(c.req.raw, db);
+  }
 );
 
 app.post(

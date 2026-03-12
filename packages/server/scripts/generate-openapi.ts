@@ -34,8 +34,15 @@ async function main() {
       },
       servers: [
         {
-          url: "https://keyflare.YOUR_ACCOUNT.workers.dev",
+          url: "{baseUrl}",
           description: "Your Keyflare deployment",
+          variables: {
+            baseUrl: {
+              default: "https://keyflare.YOUR_ACCOUNT.workers.dev",
+              description:
+                "Base URL of your Keyflare Worker (e.g. https://secrets.example.com or https://keyflare.my-account.workers.dev)",
+            },
+          },
         },
       ],
       components: {

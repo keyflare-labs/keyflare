@@ -2,6 +2,7 @@ import { describeRoute, resolver, type ResponsesWithResolver } from "hono-openap
 import {
   errorResponseSchema,
   healthResponseSchema,
+  bootstrapStatusResponseSchema,
   bootstrapResponseSchema,
   createKeyResponseSchema,
   listKeysResponseSchema,
@@ -75,6 +76,20 @@ export const describeHealthRoute = () =>
         description: "Server is healthy",
         content: {
           "application/json": { schema: resolver(healthResponseSchema) },
+        },
+      },
+    },
+  });
+
+export const describeBootstrapStatusRoute = () =>
+  describeRoute({
+    description: "Check if bootstrap has been completed (whether any API keys exist)",
+    tags: ["Bootstrap"],
+    responses: {
+      200: {
+        description: "Bootstrap status",
+        content: {
+          "application/json": { schema: resolver(bootstrapStatusResponseSchema) },
         },
       },
     },

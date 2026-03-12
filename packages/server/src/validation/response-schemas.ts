@@ -28,6 +28,13 @@ export const keyScopeSchema = z.object({
   environment: z.string(),
 });
 
+export const bootstrapStatusResponseSchema = z.object({
+  ok: z.literal(true),
+  data: z.object({
+    initialized: z.boolean(),
+  }),
+});
+
 export const bootstrapResponseSchema = z.object({
   ok: z.literal(true),
   data: z.object({

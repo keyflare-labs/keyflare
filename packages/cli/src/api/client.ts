@@ -23,7 +23,10 @@ function baseUrl(): string {
 }
 
 interface KeyflareRpcClient {
-  bootstrap: { $post: () => Promise<Response> };
+  bootstrap: {
+    $get: () => Promise<Response>;
+    $post: () => Promise<Response>;
+  };
   keys: {
     $get: () => Promise<Response>;
     $post: (opts: { json: object }) => Promise<Response>;
@@ -86,6 +89,7 @@ export const api = {
   get: <T>(path: string, apiKey?: string): Promise<T> => {
     debug("GET %s", path);
     const c = client(apiKey);
+    if (path === "/bootstrap") return unwrap<T>(c.bootstrap.$get());
     if (path === "/keys") return unwrap<T>(c.keys.$get());
     if (path === "/projects") return unwrap<T>(c.projects.$get());
     const projectEnvsMatch = path.match(/^\/projects\/([^/]+)\/environments$/);

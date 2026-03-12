@@ -54,6 +54,19 @@ kfl init [-y] [--name <name>] [--d1id <uuid>] [--master-key <key>]
 - Falls back to `CLOUDFLARE_API_TOKEN` environment variable
 - Prompts for OAuth browser login or API token if neither available
 
+**Preflight Check:**
+
+Before creating a new bootstrap key, `kfl init` checks your local configuration:
+- If the new API URL differs from your stored URL, you'll see a warning
+- If credentials exist locally and a new bootstrap key would be created, you'll be prompted to confirm
+
+If you decline the prompt:
+- The worker is still deployed/updated
+- Bootstrap is skipped (someone else can run it)
+- Your local config and credentials are preserved
+
+Use `-y` to auto-accept all prompts.
+
 **Multiple Instances:**
 
 You can deploy multiple Keyflare instances by using different names:

@@ -39,6 +39,10 @@ export interface BootstrapRequest {
   user_email?: string;
 }
 
+export interface BootstrapStatusResponse {
+  initialized: boolean;
+}
+
 export interface BootstrapResponse {
   key: string;
   prefix: string;

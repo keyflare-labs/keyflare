@@ -3,13 +3,25 @@ import {
   KEY_RANDOM_HEX_LENGTH,
   KEY_PREFIX_LENGTH,
 } from "@keyflare/shared";
-import type { BootstrapResponse } from "@keyflare/shared";
+import type { BootstrapResponse, BootstrapStatusResponse } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { sha256 } from "../crypto/hash.js";
 import { encrypt } from "../crypto/encrypt.js";
 import { countKeys, insertKey } from "../db/queries.js";
 import type { DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
+
+export async function handleBootstrapStatus(
+  request: Request,
+  db: DrizzleD1Database
+): Promise<Response> {
+  if (request.method !== "GET") {
+    return jsonError("BAD_REQUEST", "Method not allowed", 405);
+  }
+
+  const existing = await countKeys(db);
+  return jsonOk<BootstrapStatusResponse>({ initialized: existing > 0 });
+}
 
 export async function handleBootstrap(
   request: Request,

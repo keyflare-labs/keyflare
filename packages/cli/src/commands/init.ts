@@ -4,9 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { select, confirm, password } from "@inquirer/prompts";
 import ora from "ora";
-import type { BootstrapResponse } from "@keyflare/shared";
+import type { BootstrapResponse, BootstrapStatusResponse } from "@keyflare/shared";
 import { api, KeyflareApiError } from "../api/client.js";
-import { writeConfig, writeApiKey, readConfig } from "../config.js";
+import { writeConfig, writeApiKey, readConfig, readApiKey } from "../config.js";
 import { makeDebug, redact } from "../debug.js";
 import { log, success, warn, error, bold, dim } from "../output/log.js";
 import { wranglerBin as sharedWranglerBin, getWranglerEmail } from "../wrangler.js";
@@ -813,41 +813,117 @@ export async function runInit(options: {
     }
   }
 
-  // ── Step 6: Bootstrap — create first admin key (skipped if already done)
-  const bootstrapSpinner = ora("Creating user key...").start();
+  // ── Step 6: Preflight check — determine if we would overwrite local config
   const apiUrl = workerUrl || `https://${name}.workers.dev`;
-  debug("bootstrap using apiUrl=%s", apiUrl);
+  debug("preflight using apiUrl=%s", apiUrl);
 
-  // Temporarily set the API URL to bootstrap
+  // Temporarily set the API URL for the preflight check
   process.env.KEYFLARE_API_URL = apiUrl;
 
-  let adminKey: string | undefined;
+  // Read existing local state
+  const existingConfig = readConfig();
+  const existingUrl = existingConfig.apiUrl;
+  const existingCreds = readApiKey();
+
+  // Check bootstrap status on the new worker
+  const preflightSpinner = ora("Checking bootstrap status...").start();
+  let bootstrapInitialized = false;
   try {
-    const userEmail = getWranglerEmail();
-    debug("bootstrap user_email=%s", userEmail ?? "<not found>");
-    const data = await api.post<BootstrapResponse>("/bootstrap", {
-      ...(userEmail ? { user_email: userEmail } : {}),
-    });
-    adminKey = data.key;
-    debug("bootstrap created admin key (%s)", redact(adminKey));
-    bootstrapSpinner.succeed("User key created");
+    const status = await api.get<BootstrapStatusResponse>("/bootstrap");
+    bootstrapInitialized = status.initialized;
+    debug("bootstrap status: initialized=%s", bootstrapInitialized);
+    preflightSpinner.succeed(
+      bootstrapInitialized
+        ? "Instance already initialised"
+        : "Instance not yet initialised"
+    );
   } catch (err: any) {
-    if (err instanceof KeyflareApiError && err.code === "CONFLICT") {
-      // Normal on re-runs of kfl init — the instance is already initialised.
-      bootstrapSpinner.succeed("Instance already initialised — existing API keys preserved");
+    preflightSpinner.fail(`Failed to check bootstrap status: ${err.message}`);
+    process.exit(1);
+  }
+
+  // Determine what would be overwritten
+  const urlWouldChange = existingUrl && existingUrl !== apiUrl;
+  const credsWouldChange = existingCreds && !bootstrapInitialized;
+
+  debug(
+    "overwrite check: urlWouldChange=%s credsWouldChange=%s",
+    urlWouldChange,
+    credsWouldChange
+  );
+
+  // Handle overwrite scenarios
+  let shouldBootstrap = true;
+  let shouldSaveConfig = true;
+
+  if (urlWouldChange || credsWouldChange) {
+    log("");
+
+    if (urlWouldChange && credsWouldChange) {
+      warn(bold("⚠️  This will overwrite your local configuration:\n"));
+      log(`   • API URL: ${dim(existingUrl)} → ${bold(apiUrl)}`);
+      log(`   • Credentials: Your existing API key will be replaced\n`);
+    } else if (urlWouldChange) {
+      warn(bold("⚠️  API URL will be updated:\n"));
+      log(`   ${dim(existingUrl)} → ${bold(apiUrl)}\n`);
     } else {
-      bootstrapSpinner.fail(`Bootstrap failed: ${err.message}`);
-      process.exit(1);
+      warn(bold("⚠️  A new API key will be created, replacing your existing local credentials.\n"));
+      log(dim("   Your old key will remain valid on the original instance.\n"));
+    }
+
+    if (credsWouldChange) {
+      if (!options.yes) {
+        shouldBootstrap = await confirm({
+          message: "Continue?",
+          default: false,
+        });
+      }
+    } else {
+      // Only URL changes, no confirmation needed but show warning
+      shouldBootstrap = true;
+    }
+
+    if (!shouldBootstrap) {
+      shouldSaveConfig = false;
+      log(dim("\nSkipping bootstrap and local config update.\n"));
     }
   }
 
-  // ── Step 7: Save config
-  const existingConfig = readConfig();
-  writeConfig({ apiUrl, project: existingConfig.project, environment: existingConfig.environment });
-  if (adminKey) {
-    writeApiKey(adminKey);
+  // ── Step 7: Bootstrap — create first admin key (if confirmed)
+  let adminKey: string | undefined;
+
+  if (shouldBootstrap) {
+    const bootstrapSpinner = ora("Creating user key...").start();
+    debug("bootstrap using apiUrl=%s", apiUrl);
+
+    try {
+      const userEmail = getWranglerEmail();
+      debug("bootstrap user_email=%s", userEmail ?? "<not found>");
+      const data = await api.post<BootstrapResponse>("/bootstrap", {
+        ...(userEmail ? { user_email: userEmail } : {}),
+      });
+      adminKey = data.key;
+      debug("bootstrap created admin key (%s)", redact(adminKey));
+      bootstrapSpinner.succeed("User key created");
+    } catch (err: any) {
+      if (err instanceof KeyflareApiError && err.code === "CONFLICT") {
+        // Normal on re-runs of kfl init — the instance is already initialised.
+        bootstrapSpinner.succeed("Instance already initialised — existing API keys preserved");
+      } else {
+        bootstrapSpinner.fail(`Bootstrap failed: ${err.message}`);
+        process.exit(1);
+      }
+    }
   }
-  debug("config written; adminKeySaved=%s", Boolean(adminKey));
+
+  // ── Step 8: Save config (if confirmed)
+  if (shouldSaveConfig) {
+    writeConfig({ apiUrl, project: existingConfig.project, environment: existingConfig.environment });
+    if (adminKey) {
+      writeApiKey(adminKey);
+    }
+    debug("config written; adminKeySaved=%s", Boolean(adminKey));
+  }
 
   log("");
   success(bold("✓ Keyflare deployed successfully!"));

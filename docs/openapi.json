@@ -15,8 +15,14 @@
   },
   "servers": [
     {
-      "url": "https://keyflare.YOUR_ACCOUNT.workers.dev",
-      "description": "Your Keyflare deployment"
+      "url": "{baseUrl}",
+      "description": "Your Keyflare deployment",
+      "variables": {
+        "baseUrl": {
+          "default": "https://keyflare.YOUR_ACCOUNT.workers.dev",
+          "description": "Base URL of your Keyflare Worker (e.g. https://secrets.example.com or https://keyflare.my-account.workers.dev)"
+        }
+      }
     }
   ],
   "components": {
@@ -108,6 +114,46 @@
       }
     },
     "/bootstrap": {
+      "get": {
+        "operationId": "getBootstrap",
+        "description": "Check if bootstrap has been completed (whether any API keys exist)",
+        "tags": [
+          "Bootstrap"
+        ],
+        "responses": {
+          "200": {
+            "description": "Bootstrap status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "initialized": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "initialized"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "postBootstrap",
         "description": "Create the first user API key. Only works when no keys exist in the database.",
