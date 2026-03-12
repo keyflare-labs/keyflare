@@ -79,7 +79,7 @@ jobs:
           echo "Detected branch: $BRANCH"
           git fetch origin "$BRANCH"
           git checkout "$BRANCH"
-          npm pkg set version="$VERSION" --workspace packages/cli
+          (cd packages/cli && npm pkg set version="$VERSION")
           git add packages/cli/package.json
           git commit -m "chore: bump CLI version to ${GITHUB_REF_NAME}"
           git push origin "$BRANCH"
