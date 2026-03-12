@@ -14,6 +14,10 @@ Keyflare uses API keys for authentication. There are two types with different ac
 | **Access**  | Full admin         | Scoped to project:environment |
 | **Use for** | Developers, admins | CI/CD, deployment scripts     |
 
+## User Email Tracking
+
+When a key is created via the CLI, the Cloudflare account email of the creator is automatically recorded (via `wrangler whoami`). This is shown in the `EMAIL` column of `kfl keys list`. Keys created without a detectable email show `-`.
+
 ## User Keys (`kfl_user_*`)
 
 - **Full admin access** to everything
@@ -106,11 +110,11 @@ kfl keys list
 Output:
 
 ```text
-PREFIX          TYPE    LABEL              PERMISSION  SCOPES               CREATED
-kfl_user_a1b2   user    bootstrap          full        *                    2024-01-15
-kfl_user_b2c3   user    backup-admin       full        *                    2024-01-16
-kfl_sys_c3d4    system  github-actions     read        my-api:production    2024-01-16
-kfl_sys_d4e5    system  dev-script         readwrite   my-api:*             2024-01-17
+PREFIX          TYPE    LABEL              EMAIL                  PERMISSION  SCOPES               CREATED
+kfl_user_a1b2   user    bootstrap          alice@example.com      full        *                    2024-01-15
+kfl_user_b2c3   user    backup-admin       bob@example.com        full        *                    2024-01-16
+kfl_sys_c3d4    system  github-actions     alice@example.com      read        my-api:production    2024-01-16
+kfl_sys_d4e5    system  dev-script         -                      readwrite   my-api:*             2024-01-17
 ```
 
 # Update System Keys

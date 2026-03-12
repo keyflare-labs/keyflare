@@ -42,6 +42,7 @@ export const bootstrapResponseSchema = z.object({
     prefix: z.string(),
     type: z.literal("user"),
     label: z.string(),
+    user_email: z.string().nullable(),
   }),
 });
 
@@ -54,6 +55,7 @@ export const createKeyResponseSchema = z.object({
     label: z.string(),
     scopes: z.array(keyScopeSchema).nullable(),
     permission: z.string(),
+    user_email: z.string().nullable(),
   }),
 });
 
@@ -64,6 +66,7 @@ export const keyInfoSchema = z.object({
   label: z.string(),
   scopes: z.array(keyScopeSchema).nullable(),
   permission: z.string(),
+  user_email: z.string().nullable(),
   created_at: z.string(),
   last_used_at: z.string().nullable(),
   revoked: z.boolean(),

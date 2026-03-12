@@ -35,6 +35,10 @@ export interface KeyScope {
 
 // ─── Bootstrap ───
 
+export interface BootstrapRequest {
+  user_email?: string;
+}
+
 export interface BootstrapStatusResponse {
   initialized: boolean;
 }
@@ -44,6 +48,7 @@ export interface BootstrapResponse {
   prefix: string;
   type: "user";
   label: string;
+  user_email: string | null;
 }
 
 // ─── Keys ───
@@ -53,6 +58,7 @@ export interface CreateKeyRequest {
   label: string;
   scopes?: KeyScope[];
   permission?: Permission;
+  user_email?: string;
 }
 
 export interface CreateKeyResponse {
@@ -62,6 +68,7 @@ export interface CreateKeyResponse {
   label: string;
   scopes: KeyScope[] | null;
   permission: string;
+  user_email: string | null;
 }
 
 export interface KeyInfo {
@@ -71,6 +78,7 @@ export interface KeyInfo {
   label: string;
   scopes: KeyScope[] | null;
   permission: string;
+  user_email: string | null;
   created_at: string;
   last_used_at: string | null;
   revoked: boolean;
