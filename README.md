@@ -88,6 +88,15 @@ CLI (kfl) ──HTTPS──▶ Cloudflare Worker ──▶ D1 (encrypted)
 
 **Single point of failure:** The master key. If lost, all data is unrecoverable. Back it up securely. _The master key is shown once during `kfl init`_.
 
+## Contributing
+
+We welcome all contributions — bug fixes, features, docs improvements, and ideas!
+
+1. Fork the repo and create a branch
+2. Make your changes (see the [development guide](https://keyflare.mintlify.app/contributing/development))
+3. Run `pnpm run typecheck` and `pnpm test` to make sure everything passes
+4. Open a pull request — we'll review it promptly
+
 ## License
 
 MIT

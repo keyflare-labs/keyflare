@@ -1,40 +1,27 @@
-# @keyflare/cli
+![Cover](https://github.com/keyflare-labs/keyflare/blob/main/docs/assets/logo-landscape.png?raw=true)
 
-Keyflare CLI — `kfl`.
+[![NPM](https://nodei.co/npm/@keyflare/cli.png?compact=true)](https://npmjs.org/package/@keyflare/cli)
 
-The `kfl` command-line tool is the primary interface for managing secrets in Keyflare. It communicates with the Keyflare Worker API over HTTPS.
+**`kfl` — the CLI for Keyflare, the open-source secrets manager built entirely on Cloudflare. Runs on a free Cloudflare account.**
 
-## Getting Started
+> 👉 **Full documentation at [keyflare.mintlify.app](https://keyflare.mintlify.app/)**
 
-### Installation
+---
+
+## Installation
 
 ```bash
 npm install -g @keyflare/cli
 ```
 
-### Initial Setup
-
-Deploy Keyflare to your Cloudflare account and generate your first API key:
+## Quick Start
 
 ```bash
+# Deploy Keyflare to your Cloudflare account (one-time setup)
 kfl init
-```
 
-This interactive command will:
-1. Verify your Cloudflare API token
-2. Create a D1 database
-3. Generate a 256-bit master encryption key
-4. Deploy the Keyflare Worker
-5. Run database migrations
-6. Create your first user API key
-
-### Basic Usage
-
-```bash
-# Create a project
+# Create a project and environment
 kfl projects create my-api
-
-# Create an environment inside the project
 kfl env create production --project my-api
 
 # Upload secrets from a .env file
@@ -47,9 +34,9 @@ kfl run --project my-api --env production -- npm start
 kfl download --project my-api --env production --output .env
 ```
 
-### Configuration
+## Configuration
 
-The CLI stores its configuration (API URL and key) in `~/.config/keyflare/` after running `kfl init`. You can also use environment variables:
+After `kfl init`, credentials are stored in `~/.config/keyflare/`. You can override them with environment variables:
 
 | Variable | Description |
 |----------|-------------|
@@ -58,30 +45,7 @@ The CLI stores its configuration (API URL and key) in `~/.config/keyflare/` afte
 | `KEYFLARE_PROJECT` | Default project |
 | `KEYFLARE_ENV` | Default environment |
 
-### Local Development
-
-```bash
-# From the repo root, install all dependencies
-npm install
-
-# Point the CLI at a locally running Keyflare server
-export KEYFLARE_API_URL=http://localhost:8787
-export KEYFLARE_API_KEY=kfl_user_<your-local-bootstrap-key>
-
-# Run CLI commands during development (from this package directory)
-npm run dev -- projects list
-
-# Or from the repo root
-npx tsx packages/cli/src/index.ts projects list
-```
-
-### Building
-
-```bash
-npm run build
-```
-
-Produces a bundled `dist/index.js` (ESM) that is referenced by the `kfl` bin entry.
+→ [Full configuration reference](https://keyflare.mintlify.app/cli/cli-configuration)
 
 ## Commands
 
@@ -97,17 +61,28 @@ Produces a bundled `dist/index.js` (ESM) that is referenced by the `kfl` bin ent
 | `kfl keys list/create/revoke` | Manage API keys |
 | `kfl dev init/server` | Local development helpers |
 
-## Scripts
+→ [Full CLI reference](https://keyflare.mintlify.app/cli/overview)
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Run CLI via `tsx` (no build step) |
-| `npm run build` | Bundle with `tsup` |
-| `npm run typecheck` | Type-check via `tsc --noEmit` |
-| `npm test` | Run tests with Vitest |
+## Documentation
 
-## Further Reading
+| Topic | Link |
+|-------|-------|
+| Quickstart | [keyflare.mintlify.app/getting-started/quickstart](https://keyflare.mintlify.app/getting-started/quickstart) |
+| CLI Reference | [keyflare.mintlify.app/cli/overview](https://keyflare.mintlify.app/cli/overview) |
+| API Keys & Access | [keyflare.mintlify.app/guides/api-keys](https://keyflare.mintlify.app/guides/api-keys) |
+| Projects & Secrets | [keyflare.mintlify.app/guides/projects](https://keyflare.mintlify.app/guides/projects) |
+| Architecture | [keyflare.mintlify.app/architecture/overview](https://keyflare.mintlify.app/architecture/overview) |
+| Security Model | [keyflare.mintlify.app/architecture/security](https://keyflare.mintlify.app/architecture/security) |
 
-- [CLI Reference](../../docs/04-cli-reference.md)
-- [API Keys & Access Control](../../docs/03-api-keys-and-access.md)
-- [Development Guide](../../docs/06-development.md)
+## Contributing
+
+We welcome all contributions — bug fixes, features, docs improvements, and ideas!
+
+1. Fork the repo and create a branch
+2. Make your changes (see the [development guide](https://keyflare.mintlify.app/contributing/development))
+3. Run `npm run typecheck` and `npm test` to make sure everything passes
+4. Open a pull request — we'll review it promptly
+
+## License
+
+MIT
