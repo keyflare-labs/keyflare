@@ -271,7 +271,7 @@ keys
       "  - Can only access specific project/environment combinations.\n" +
       "  - Required flags: --type system --label <label> --scope <project:env> --permission <read|readwrite>\n" +
       "  - Use --scope multiple times for multiple project:env pairs.\n" +
-      "  - Use * as environment wildcard (e.g., --scope my-api:*)"
+      '  - Use * as environment wildcard (e.g., --scope "my-api:*")'
   )
   .requiredOption("--type <type>", "Key type: user or system")
   .requiredOption("--label <label>", "Human-readable label")
@@ -302,8 +302,8 @@ keys
     "Update the scopes and permission of a system key.\n\n" +
       "This replaces ALL existing scopes with the new set. Use `kfl keys list` to see current scopes.\n\n" +
       "Examples:\n" +
-      "  kfl keys put kfl_sys_abc123 --scope my-api:production --permission read\n" +
-      "  kfl keys put kfl_sys_abc123 --scope my-api:* --scope frontend:* --permission readwrite"
+      '  kfl keys put kfl_sys_abc123 --scope "my-api:production" --permission read\n' +
+      '  kfl keys put kfl_sys_abc123 --scope "my-api:*" --scope "frontend:*" --permission readwrite'
   )
   .requiredOption(
     "--scope <scope>",
