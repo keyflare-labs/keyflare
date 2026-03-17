@@ -25,13 +25,13 @@ kfl projects create my-api
 kfl env create production --project my-api
 
 # Upload secrets from a .env file
-kfl upload .env.production --project my-api --env production
+kfl secrets upload .env.production --project my-api --env production
 
 # Inject secrets into a command at runtime (no disk writes)
 kfl run --project my-api --env production -- npm start
 
 # Download secrets as a .env file
-kfl download --project my-api --env production --output .env
+kfl secrets download --project my-api --env production --output .env
 ```
 
 ## Configuration
@@ -55,8 +55,8 @@ After `kfl init`, credentials are stored in `~/.config/keyflare/`. You can overr
 | `kfl projects list/create/delete` | Manage projects |
 | `kfl env list/create/delete` | Manage environments |
 | `kfl secrets set/get/delete/list` | Manage individual secrets |
-| `kfl upload <file>` | Upload a `.env` file (full replace) |
-| `kfl download` | Download secrets (`.env`, JSON, YAML) |
+| `kfl secrets upload <file>` | Upload a `.env` file (full replace) |
+| `kfl secrets download` | Download secrets (`.env`, JSON, YAML) |
 | `kfl run -- <cmd>` | Inject secrets into a child process |
 | `kfl keys list/create/revoke` | Manage API keys |
 | `kfl dev init/server` | Local development helpers |

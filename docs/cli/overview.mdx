@@ -163,36 +163,25 @@ kfl secrets list --project <name> --env <env>
 
 # Delete a secret
 kfl secrets delete <KEY> --project <name> --env <env>
-```
 
----
+# Upload from .env (full override)
+kfl secrets upload <file> --project <name> --env <env>
 
-### `kfl upload`
-
-Upload a `.env` file (full override).
-
-```bash
-kfl upload <file> --project <name> --env <env>
+# Download secrets
+kfl secrets download --project <name> --env <env> [options]
 ```
 
 <Warning>
   Upload replaces ALL existing secrets in the target environment.
 </Warning>
 
----
-
-### `kfl download`
-
-Download secrets in various formats.
-
-```bash
-kfl download --project <name> --env <env> [options]
-```
 
 | Option            | Description                                             |
 | ----------------- | ------------------------------------------------------- |
 | `--format <fmt>`  | Output format: `env` (default), `json`, `yaml`, `shell` |
 | `--output <file>` | Write to file (default: stdout)                         |
+
+Legacy aliases are still available but deprecated: `kfl upload`, `kfl download`.
 
 ---
 

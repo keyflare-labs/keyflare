@@ -38,13 +38,13 @@ kfl projects create my-api
 kfl env create production --project my-api
 
 # Upload secrets from a .env file
-kfl upload .env.production --project my-api --env production
+kfl secrets upload .env.production --project my-api --env production
 
 # Inject secrets into a command
 kfl run --project my-api --env production -- npm run build
 
 # Download secrets as .env file
-kfl download --project my-api --env production --output .env
+kfl secrets download --project my-api --env production --output .env
 ```
 
 ## Documentation

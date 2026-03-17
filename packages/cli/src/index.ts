@@ -32,7 +32,7 @@ import {
   runKeysUpdate,
 } from "./commands/keys.js";
 import { readConfig } from "./config.js";
-import { error } from "./output/log.js";
+import { error, warn } from "./output/log.js";
 import { makeDebug } from "./debug.js";
 
 const program = new Command();
@@ -203,8 +203,7 @@ secrets
     await runSecretsDelete(key, opts.project, opts.env).catch(handleError);
   });
 
-// ─── kfl upload ──────────────────────────────────────────────
-program
+secrets
   .command("upload <file>")
   .description(
     "Upload a .env file — REPLACES all secrets in the target environment"
@@ -216,8 +215,7 @@ program
     await runUpload(file, opts.project, opts.env, opts).catch(handleError);
   });
 
-// ─── kfl download ────────────────────────────────────────────
-program
+secrets
   .command("download")
   .description("Download secrets to stdout or a file")
   .requiredOption("--project <name>", "Project name", resolveProject())
@@ -225,6 +223,32 @@ program
   .option("--format <fmt>", "Output format: env, json, yaml, shell", "env")
   .option("--output <file>", "Write to file instead of stdout")
   .action(async (opts) => {
+    await runDownload(opts.project, opts.env, opts).catch(handleError);
+  });
+
+// ─── Deprecated aliases: kfl upload/download ────────────────
+program
+  .command("upload <file>", { hidden: true })
+  .description(
+    "Upload a .env file — REPLACES all secrets in the target environment"
+  )
+  .requiredOption("--project <name>", "Project name", resolveProject())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
+  .option("--force", "Skip confirmation prompt")
+  .action(async (file: string, opts: { project: string; env: string; force?: boolean }) => {
+    warn("`kfl upload` is deprecated; use `kfl secrets upload`");
+    await runUpload(file, opts.project, opts.env, opts).catch(handleError);
+  });
+
+program
+  .command("download", { hidden: true })
+  .description("Download secrets to stdout or a file")
+  .requiredOption("--project <name>", "Project name", resolveProject())
+  .requiredOption("--env <name>", "Environment name", resolveEnvironment())
+  .option("--format <fmt>", "Output format: env, json, yaml, shell", "env")
+  .option("--output <file>", "Write to file instead of stdout")
+  .action(async (opts: { project: string; env: string; format?: string; output?: string }) => {
+    warn("`kfl download` is deprecated; use `kfl secrets download`");
     await runDownload(opts.project, opts.env, opts).catch(handleError);
   });
 
