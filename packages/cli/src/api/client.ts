@@ -71,9 +71,27 @@ function client(apiKey?: string): KeyflareRpcClient {
 }
 
 async function unwrap<T>(resPromise: Promise<Response>): Promise<T> {
-  const res = await resPromise;
+  let res: Response;
+  try {
+    res = await resPromise;
+  } catch (err: any) {
+    throw new KeyflareApiError(
+      "NETWORK_ERROR",
+      buildNetworkErrorMessage(err),
+      0
+    );
+  }
   debug("response status=%d", res.status);
-  const json = (await res.json()) as ApiResponse<T>;
+  let json: ApiResponse<T>;
+  try {
+    json = (await res.json()) as ApiResponse<T>;
+  } catch {
+    throw new KeyflareApiError(
+      "INVALID_RESPONSE",
+      buildInvalidResponseMessage(res),
+      res.status
+    );
+  }
   if (!res.ok || !("ok" in json) || !json.ok) {
     const err = (json as ApiErrorResponse).error;
     throw new KeyflareApiError(
@@ -83,6 +101,73 @@ async function unwrap<T>(resPromise: Promise<Response>): Promise<T> {
     );
   }
   return (json as { ok: true; data: T }).data;
+}
+
+/** Generic fetch wrapper that gives consistent network/parse error messages. */
+async function fetchAndUnwrap<T>(request: Request | Promise<Response>): Promise<T> {
+  return unwrap<T>(request instanceof Request ? fetch(request) : request);
+}
+
+async function genericFetch<T>(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body?: unknown
+): Promise<T> {
+  return unwrap<T>(
+    fetch(url, {
+      method,
+      headers: body
+        ? { "Content-Type": "application/json", ...headers }
+        : headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  );
+}
+
+function buildNetworkErrorMessage(err: any): string {
+  const apiUrl = getApiUrl();
+  const isDefaultLocalhost = apiUrl === "http://localhost:8787";
+  const msg: string = err?.message ?? String(err);
+  if (
+    msg.includes("ECONNREFUSED") ||
+    msg.includes("fetch failed") ||
+    msg.includes("Failed to fetch") ||
+    msg.includes("ENOTFOUND") ||
+    msg.includes("ETIMEDOUT") ||
+    msg.includes("ERR_INVALID_URL")
+  ) {
+    const hints = isDefaultLocalhost
+      ? [
+          `  • It looks like you haven't configured a Keyflare instance yet.`,
+          `  • Run "kfl init" to deploy a new instance, then "kfl login" to connect.`,
+        ]
+      : [
+          `  • Check that your Keyflare instance at ${apiUrl} is running and accessible.`,
+          `  • Run "kfl login" to update your API URL.`,
+          `  • Set KEYFLARE_API_URL to override the configured URL.`,
+        ];
+    return [`Cannot connect to the Keyflare API at ${apiUrl}.`, ...hints].join("\n");
+  }
+  return msg;
+}
+
+function buildInvalidResponseMessage(res: Response): string {
+  const apiUrl = getApiUrl();
+  if (res.status >= 200 && res.status < 300) {
+    return (
+      `Received a non-JSON response from ${apiUrl} (HTTP ${res.status}).\n` +
+      `  • The URL may point to the wrong server (e.g. a proxy or CDN).\n` +
+      `  • Run "kfl login" to update your API URL.\n` +
+      `  • If you haven't set up Keyflare yet, run "kfl init" first.`
+    );
+  }
+  return (
+    `Unexpected response from ${apiUrl} (HTTP ${res.status}).\n` +
+    `  • The server may be misconfigured, deleted, or temporarily unavailable.\n` +
+    `  • Run "kfl login" to update your API URL.\n` +
+    `  • If you haven't set up Keyflare yet, run "kfl init" first.`
+  );
 }
 
 export const api = {
@@ -109,20 +194,10 @@ export const api = {
         })
       );
     }
-    return fetch(baseUrl().replace(/\/$/, "") + path, {
-      method: "GET",
-      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
-    }).then((r) =>
-      r.json().then((j) => {
-        const json = j as { ok?: boolean; data?: T; error?: { code: string; message: string } };
-        if (!r.ok || !json.ok)
-          throw new KeyflareApiError(
-            json.error?.code ?? "UNKNOWN",
-            json.error?.message ?? "Request failed",
-            r.status
-          );
-        return json.data as T;
-      })
+    return genericFetch<T>(
+      "GET",
+      baseUrl().replace(/\/$/, "") + path,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
     );
   },
 
@@ -144,24 +219,11 @@ export const api = {
         })
       );
     }
-    return fetch(baseUrl().replace(/\/$/, "") + path, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    }).then((r) =>
-      r.json().then((j) => {
-        const json = j as { ok?: boolean; data?: T; error?: { code: string; message: string } };
-        if (!r.ok || !json.ok)
-          throw new KeyflareApiError(
-            json.error?.code ?? "UNKNOWN",
-            json.error?.message ?? "Request failed",
-            r.status
-          );
-        return json.data as T;
-      })
+    return genericFetch<T>(
+      "POST",
+      baseUrl().replace(/\/$/, "") + path,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      body
     );
   },
 
@@ -188,24 +250,11 @@ export const api = {
         })
       );
     }
-    return fetch(baseUrl().replace(/\/$/, "") + path, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-      },
-      body: JSON.stringify(body),
-    }).then((r) =>
-      r.json().then((j) => {
-        const json = j as { ok?: boolean; data?: T; error?: { code: string; message: string } };
-        if (!r.ok || !json.ok)
-          throw new KeyflareApiError(
-            json.error?.code ?? "UNKNOWN",
-            json.error?.message ?? "Request failed",
-            r.status
-          );
-        return json.data as T;
-      })
+    return genericFetch<T>(
+      "PUT",
+      baseUrl().replace(/\/$/, "") + path,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      body
     );
   },
 
@@ -225,24 +274,11 @@ export const api = {
         })
       );
     }
-    return fetch(baseUrl().replace(/\/$/, "") + path, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-      },
-      body: JSON.stringify(body),
-    }).then((r) =>
-      r.json().then((j) => {
-        const json = j as { ok?: boolean; data?: T; error?: { code: string; message: string } };
-        if (!r.ok || !json.ok)
-          throw new KeyflareApiError(
-            json.error?.code ?? "UNKNOWN",
-            json.error?.message ?? "Request failed",
-            r.status
-          );
-        return json.data as T;
-      })
+    return genericFetch<T>(
+      "PATCH",
+      baseUrl().replace(/\/$/, "") + path,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      body
     );
   },
 
@@ -269,20 +305,10 @@ export const api = {
         })
       );
     }
-    return fetch(baseUrl().replace(/\/$/, "") + path, {
-      method: "DELETE",
-      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
-    }).then((r) =>
-      r.json().then((j) => {
-        const json = j as { ok?: boolean; data?: T; error?: { code: string; message: string } };
-        if (!r.ok || !json.ok)
-          throw new KeyflareApiError(
-            json.error?.code ?? "UNKNOWN",
-            json.error?.message ?? "Request failed",
-            r.status
-          );
-        return json.data as T;
-      })
+    return genericFetch<T>(
+      "DELETE",
+      baseUrl().replace(/\/$/, "") + path,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
     );
   },
 };
