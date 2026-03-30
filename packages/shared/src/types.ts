@@ -193,3 +193,10 @@ export interface HealthResponse {
   ok: true;
   version: string;
 }
+
+// ─── Auth Verify ───
+
+export interface AuthVerifyResponse {
+  key_type: "user" | "system";
+  key_prefix: string;
+}

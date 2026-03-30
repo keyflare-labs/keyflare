@@ -3,6 +3,7 @@ import ora from "ora";
 import { api, KeyflareApiError } from "../api/client.js";
 import { writeConfig, writeApiKey, getApiUrl, readApiKey } from "../config.js";
 import { log, error, bold, dim } from "../output/log.js";
+import type { AuthVerifyResponse } from "@keyflare/shared";
 
 export async function runLogin() {
   log(bold("\n🔑 Keyflare Login\n"));
@@ -82,8 +83,10 @@ export async function runLogin() {
 
   // Verify credentials by calling the API
   const spinner = ora("Verifying credentials...").start();
+  let verifiedKeyType: "user" | "system" = "user";
   try {
-    await api.get("/keys");
+    const verify = await api.get<AuthVerifyResponse>("/auth/verify");
+    verifiedKeyType = verify.key_type;
     spinner.succeed("Credentials verified");
   } catch (err: any) {
     spinner.fail("Failed to verify credentials");
@@ -115,8 +118,9 @@ export async function runLogin() {
     delete process.env.KEYFLARE_API_KEY;
   }
 
+  const keyTypeLabel = verifiedKeyType === "system" ? "system key" : "user key";
   log(
-    `\n${bold("✓ Logged in!")}\n\n${dim("API URL:")} ${apiUrl}\n${dim("Credentials saved to:")} ~/.config/keyflare/\n`
+    `\n${bold("✓ Logged in!")}\n\n${dim("API URL:")} ${apiUrl}\n${dim("Key type:")} ${keyTypeLabel}\n${dim("Credentials saved to:")} ~/.config/keyflare/\n`
   );
 }
 

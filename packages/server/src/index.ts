@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { VERSION } from "@keyflare/shared";
-import type { HealthResponse } from "@keyflare/shared";
+import type { HealthResponse, AuthVerifyResponse } from "@keyflare/shared";
 import { dbAndKeysMiddleware, authMiddleware } from "./middleware/hono.js";
 import { loggerMiddleware } from "./middleware/logger.js";
 import { handleBootstrap, handleBootstrapStatus } from "./routes/bootstrap.js";
@@ -63,6 +63,27 @@ app.get(
   "/health",
   describeHealthRoute(),
   (_c) => jsonOk<HealthResponse>({ ok: true, version: VERSION })
+);
+
+app.get(
+  "/auth/verify",
+  dbAndKeysMiddleware,
+  authMiddleware,
+  async (c) => {
+    const auth = c.get("auth");
+    const db = c.get("db");
+    const derivedKeys = c.get("derivedKeys");
+    // Look up the key prefix from the Authorization header
+    const { sha256 } = await import("./crypto/hash.js");
+    const apiKey = c.req.header("Authorization")?.slice(7).trim() ?? "";
+    const keyHash = await sha256(apiKey);
+    const { getKeyByHash } = await import("./db/queries.js");
+    const row = await getKeyByHash(db, keyHash);
+    return jsonOk<AuthVerifyResponse>({
+      key_type: auth.keyType,
+      key_prefix: row?.keyPrefix ?? "",
+    });
+  }
 );
 
 app.get(
