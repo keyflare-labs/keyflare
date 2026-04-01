@@ -14,6 +14,18 @@ export type SecretRow = typeof secrets.$inferSelect;
 
 // ─── API Keys ───
 
+export async function prefixExists(
+  db: DrizzleD1Database,
+  prefix: string
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: apiKeys.id })
+    .from(apiKeys)
+    .where(eq(apiKeys.keyPrefix, prefix))
+    .limit(1);
+  return rows.length > 0;
+}
+
 export async function getKeyByHash(
   db: DrizzleD1Database,
   keyHash: string

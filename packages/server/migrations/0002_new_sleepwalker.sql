@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `api_keys_key_prefix_unique` ON `api_keys` (`key_prefix`);
