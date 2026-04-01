@@ -1,15 +1,11 @@
-import {
-  USER_KEY_PREFIX,
-  KEY_RANDOM_HEX_LENGTH,
-  KEY_PREFIX_LENGTH,
-} from "@keyflare/shared";
+import { USER_KEY_PREFIX } from "@keyflare/shared";
 import type { BootstrapResponse, BootstrapStatusResponse } from "@keyflare/shared";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { sha256 } from "../crypto/hash.js";
 import { encrypt } from "../crypto/encrypt.js";
 import { countKeys, insertKey } from "../db/queries.js";
 import type { DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
+import { generateUniqueKey } from "./keys.js";
 
 export async function handleBootstrapStatus(
   request: Request,
@@ -53,11 +49,16 @@ export async function handleBootstrap(
     // No body or invalid JSON — that's fine, user_email stays null
   }
 
-  // Generate a user key
-  const randomHex = generateRandomHex(KEY_RANDOM_HEX_LENGTH);
-  const fullKey = `${USER_KEY_PREFIX}${randomHex}`;
-  const prefix = fullKey.slice(0, KEY_PREFIX_LENGTH);
-  const keyHash = await sha256(fullKey);
+  // Generate a user key with a unique prefix
+  const generated = await generateUniqueKey(db, USER_KEY_PREFIX);
+  if (generated === null) {
+    return jsonError(
+      "INTERNAL_ERROR",
+      "Unable to generate a unique key prefix after multiple attempts. Please try again.",
+      500
+    );
+  }
+  const { fullKey, keyPrefix: prefix, keyHash } = generated;
 
   const label = "bootstrap";
   const encryptedLabel = await encrypt(derivedKeys.encryptionKey, label);
@@ -81,13 +82,4 @@ export async function handleBootstrap(
     label,
     user_email: userEmail,
   });
-}
-
-function generateRandomHex(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length / 2));
-  let hex = "";
-  for (const b of bytes) {
-    hex += b.toString(16).padStart(2, "0");
-  }
-  return hex;
 }

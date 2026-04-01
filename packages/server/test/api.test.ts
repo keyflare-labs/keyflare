@@ -1189,4 +1189,82 @@ describe("Keyflare API", () => {
       expect(res2.status).toBe(404);
     });
   });
+
+  // ─── Key prefix uniqueness ───
+  describe("Key prefix uniqueness", () => {
+    let userKey: string;
+
+    beforeEach(async () => {
+      const res = await post("/bootstrap");
+      const json = (await res.json()) as any;
+      userKey = json.data.key;
+    });
+
+    it("bootstrap returns a key whose prefix is exactly KEY_PREFIX_LENGTH characters", async () => {
+      // bootstrap already ran in beforeEach; just inspect the key
+      const res = await post("/bootstrap");
+      // Second bootstrap should 409 (already bootstrapped), which confirms
+      // the first one returned a valid key. The prefix is validated below.
+      expect(res.status).toBe(409);
+
+      // Re-bootstrap in a clean state (cleanDb runs before each test via beforeEach)
+      const db = drizzle(env.DB_BINDING);
+      await db.delete(secrets);
+      await db.delete(environments);
+      await db.delete(projects);
+      await db.delete(apiKeys);
+
+      const freshRes = await post("/bootstrap");
+      expect(freshRes.status).toBe(200);
+      const json = (await freshRes.json()) as any;
+      expect(json.data.prefix).toHaveLength(12);
+      expect(json.data.key).toMatch(/^kfl_user_/);
+    });
+
+    it("each key created via POST /keys has a distinct prefix", async () => {
+      const prefixes = new Set<string>();
+
+      // Create several keys and verify all prefixes are distinct
+      for (let i = 0; i < 5; i++) {
+        const res = await post(
+          "/keys",
+          { type: "user", label: `key-${i}` },
+          userKey
+        );
+        expect(res.status).toBe(200);
+        const json = (await res.json()) as any;
+        const prefix = json.data.prefix as string;
+        expect(prefix).toHaveLength(12);
+        expect(prefixes.has(prefix)).toBe(false);
+        prefixes.add(prefix);
+      }
+
+      expect(prefixes.size).toBe(5);
+    });
+
+    it("prefixes for user keys start with kfl_user_ and system keys start with kfl_sys_", async () => {
+      const userRes = await post(
+        "/keys",
+        { type: "user", label: "user-prefix-test" },
+        userKey
+      );
+      expect(userRes.status).toBe(200);
+      const userJson = (await userRes.json()) as any;
+      expect(userJson.data.prefix).toMatch(/^kfl_user_/);
+
+      const sysRes = await post(
+        "/keys",
+        {
+          type: "system",
+          label: "sys-prefix-test",
+          scopes: [{ project: "x", environment: "*" }],
+          permission: "read",
+        },
+        userKey
+      );
+      expect(sysRes.status).toBe(200);
+      const sysJson = (await sysRes.json()) as any;
+      expect(sysJson.data.prefix).toMatch(/^kfl_sys_/);
+    });
+  });
 });
