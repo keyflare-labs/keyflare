@@ -92,6 +92,7 @@ export const api = {
     if (path === "/bootstrap") return unwrap<T>(c.bootstrap.$get());
     if (path === "/keys") return unwrap<T>(c.keys.$get());
     if (path === "/projects") return unwrap<T>(c.projects.$get());
+    // For /auth/verify and other unregistered paths, fall through to the generic fetch below
     const projectEnvsMatch = path.match(/^\/projects\/([^/]+)\/environments$/);
     if (projectEnvsMatch) {
       const project = decodeURIComponent(projectEnvsMatch[1]);
