@@ -257,10 +257,11 @@ program
   .command("run")
   .description(
     "Run a command with secrets injected as environment variables.\n\n" +
-    "  The command is executed via the shell, so $VAR references, pipes,\n" +
-    "  redirects, and && chains all work as expected.\n\n" +
+    "  Commands are executed directly (argv-preserving), so quoting works\n" +
+    "  reliably for cases like node -e '...'. For shell operators or $VAR\n" +
+    "  expansion, run an explicit shell (for example: sh -c 'echo $MYSECRET').\n\n" +
     "  Example:\n" +
-    "    kfl run --project my-api --env Prod -- echo $MYSECRET"
+    "    kfl run --project my-api --env Prod -- sh -c 'echo $MYSECRET'"
   )
   .requiredOption("--project <name>", "Project name", resolveProject())
   .requiredOption("--env <name>", "Environment name", resolveEnvironment())

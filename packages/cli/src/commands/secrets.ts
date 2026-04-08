@@ -264,14 +264,11 @@ export async function runRun(
   const data = await api.get<GetSecretsResponse>(secretsUrl(project, environment));
   const env = { ...process.env, ...data.secrets };
 
-  // ── Spawn via shell so $VAR references in args expand against injected env ─
-  // We explicitly call the shell with -c flag to avoid Node.js DEP0190 warning.
-  // This ensures proper argument escaping and security while maintaining support for
-  // shell operators (pipes, redirects, &&, etc.) and environment variable expansion.
-  const shell = process.env.SHELL || (process.platform === 'win32' ? 'cmd.exe' : '/bin/sh');
-  const commandString = cmd.join(' ');
-
-  const child = spawn(shell, ['-c', commandString], {
+  // ── Spawn directly (argv-preserving) ──────────────────────────────────────
+  // This avoids Node.js DEP0190 (`shell: true` with args) while preserving
+  // quoting exactly as provided by the user. Shell operators are still
+  // available explicitly via `sh -c "..."` (or `cmd /c "..."` on Windows).
+  const child = spawn(cmd[0], cmd.slice(1), {
     env,
     stdio: "inherit",
     // detached: new process group so we can kill the whole tree on SIGINT

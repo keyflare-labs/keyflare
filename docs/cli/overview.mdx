@@ -187,7 +187,9 @@ Legacy aliases are still available but deprecated: `kfl upload`, `kfl download`.
 
 ### `kfl run`
 
-Run a command with secrets injected as environment variables. The command is executed via the shell, so `$VAR` references, pipes, redirects, and `&&` chains all work as expected.
+Run a command with secrets injected as environment variables. Commands are executed directly (argv-preserving), so quoting works reliably for cases like `node -e '...'`.
+
+If you need shell features (`$VAR` expansion, pipes, redirects, `&&`), run an explicit shell command such as `sh -c 'echo $MYSECRET | cut -d@ -f2'`.
 
 ```bash
 kfl run --project <name> --env <env> -- <command> [args...]
@@ -205,9 +207,12 @@ kfl run --project my-api --env production -- npm run build
 kfl run --project my-api --env development -- npm run dev
 kfl run -- npm run dev  # Uses defaults from config
 
-# $VAR references work — expanded by the subprocess after secrets are injected
-kfl run --project my-api --env Prod -- echo $MYSECRET
-kfl run --project my-api --env Prod -- echo $DATABASE_URL | cut -d@ -f2
+# Quoting is preserved for argv-based tools
+kfl run --project my-api --env Prod -- node -e 'console.log(process.env.MYSECRET)'
+
+# Use an explicit shell when you need shell operators / expansion
+kfl run --project my-api --env Prod -- sh -c 'echo $MYSECRET'
+kfl run --project my-api --env Prod -- sh -c 'echo $DATABASE_URL | cut -d@ -f2'
 ```
 
 ---
