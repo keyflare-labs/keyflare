@@ -50,6 +50,22 @@ kfl secrets download --project my-api --env production --output .env
 ## Documentation
 > 👉 **Read the full documentation at [keyflare.mintlify.app](https://keyflare.mintlify.app/)**
 
+## AI Agent Skill (Optional)
+
+This repo includes a lightweight Keyflare usage skill for agent-driven workflows:
+
+- Path: `.agents/skills/keyflare/SKILL.md`
+- Purpose: quick `kfl` command help (projects, envs, secrets, keys, `kfl run`)
+
+It is designed for everyday CLI usage prompts like:
+
+```bash
+kfl projects list
+kfl env create staging --project my-api
+kfl secrets set DATABASE_URL=postgres://... --project my-api --env production
+kfl run --project my-api --env development -- npm run dev
+```
+
 ## Monorepo Structure
 
 ```
