@@ -14,7 +14,7 @@ import type {
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { sha256 } from "../crypto/hash.js";
 import { encrypt, decrypt } from "../crypto/encrypt.js";
-import { insertKey, listKeys, revokeKeyByPrefix, getKeyByPrefix, updateKeyScopes } from "../db/queries.js";
+import { insertKey, listKeys, revokeKeyByPrefix, getKeyByPrefix, updateKeyScopes, prefixExists } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
 import type { CreateKeyInput, UpdateKeyInput } from "../validation/schemas.js";
@@ -32,10 +32,16 @@ export async function handleCreateKey(
 
   const prefix_str =
     body.type === "user" ? USER_KEY_PREFIX : SYSTEM_KEY_PREFIX;
-  const randomHex = generateRandomHex(KEY_RANDOM_HEX_LENGTH);
-  const fullKey = `${prefix_str}${randomHex}`;
-  const keyPrefix = fullKey.slice(0, KEY_PREFIX_LENGTH);
-  const keyHash = await sha256(fullKey);
+
+  const generated = await generateUniqueKey(db, prefix_str);
+  if (generated === null) {
+    return jsonError(
+      "INTERNAL_ERROR",
+      "Unable to generate a unique key prefix after multiple attempts. Please try again.",
+      500
+    );
+  }
+  const { fullKey, keyPrefix, keyHash } = generated;
 
   const encryptedLabel = await encrypt(derivedKeys.encryptionKey, body.label);
 
@@ -217,4 +223,24 @@ function generateRandomHex(length: number): string {
     hex += b.toString(16).padStart(2, "0");
   }
   return hex;
+}
+
+/**
+ * Generate a key with a unique prefix by retrying up to MAX_RETRIES times.
+ * Returns null if all attempts are exhausted (should be extremely rare in practice).
+ */
+export async function generateUniqueKey(
+  db: DrizzleD1Database,
+  prefix_str: string
+): Promise<{ fullKey: string; keyPrefix: string; keyHash: string } | null> {
+  const MAX_RETRIES = 5;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const randomHex = generateRandomHex(KEY_RANDOM_HEX_LENGTH);
+    const fullKey = `${prefix_str}${randomHex}`;
+    const keyPrefix = fullKey.slice(0, KEY_PREFIX_LENGTH);
+    if (!(await prefixExists(db, keyPrefix))) {
+      return { fullKey, keyPrefix, keyHash: await sha256(fullKey) };
+    }
+  }
+  return null;
 }
