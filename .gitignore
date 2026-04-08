@@ -26,3 +26,5 @@ Thumbs.db
 
 # Test coverage
 coverage/
+
+tmp/

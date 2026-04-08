@@ -12,7 +12,7 @@ A Cloudflare account is **only required for remote deployment**. Local developme
 ## One-time setup
 
 ```bash
-git clone https://github.com/matthias-hausberger/keyflare.git
+git clone https://github.com/keyflare-labs/keyflare.git
 cd keyflare
 
 pnpm run setup
