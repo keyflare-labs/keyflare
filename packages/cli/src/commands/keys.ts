@@ -70,7 +70,14 @@ export async function runKeysCreate(opts: {
   }
 
   const scopes: KeyScope[] | undefined = opts.scope?.map((s) => {
-    const [project, environment] = s.split(":");
+    const colonIdx = s.indexOf(":");
+    if (colonIdx === -1) {
+      throw new Error(
+        `Invalid scope "${s}" — expected format: project:environment`
+      );
+    }
+    const project = s.slice(0, colonIdx);
+    const environment = s.slice(colonIdx + 1);
     if (!project || !environment) {
       throw new Error(
         `Invalid scope "${s}" — expected format: project:environment`
@@ -107,7 +114,14 @@ export async function runKeysUpdate(prefix: string, opts: {
 }) {
   // Parse scopes
   const scopes: KeyScope[] = opts.scope.map((s) => {
-    const [project, environment] = s.split(":");
+    const colonIdx = s.indexOf(":");
+    if (colonIdx === -1) {
+      throw new Error(
+        `Invalid scope "${s}" — expected format: project:environment`
+      );
+    }
+    const project = s.slice(0, colonIdx);
+    const environment = s.slice(colonIdx + 1);
     if (!project || !environment) {
       throw new Error(
         `Invalid scope "${s}" — expected format: project:environment`
