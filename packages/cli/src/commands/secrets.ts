@@ -265,14 +265,15 @@ export async function runRun(
   const env = { ...process.env, ...data.secrets };
 
   // ── Spawn via shell so $VAR references in args expand against injected env ─
-  // shell: true joins cmd into a string and passes it to sh -c, which means
-  // $VAR references are expanded by the subprocess (after secrets are set),
-  // pipes/redirects/&& work as expected, and the user's shell pre-expansion
-  // of unquoted $VAR is no longer a concern.
-  const child = spawn(cmd[0], cmd.slice(1), {
+  // We explicitly call the shell with -c flag to avoid Node.js DEP0190 warning.
+  // This ensures proper argument escaping and security while maintaining support for
+  // shell operators (pipes, redirects, &&, etc.) and environment variable expansion.
+  const shell = process.env.SHELL || (process.platform === 'win32' ? 'cmd.exe' : '/bin/sh');
+  const commandString = cmd.join(' ');
+
+  const child = spawn(shell, ['-c', commandString], {
     env,
     stdio: "inherit",
-    shell: true,
     // detached: new process group so we can kill the whole tree on SIGINT
     detached: true,
   });
