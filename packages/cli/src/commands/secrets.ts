@@ -113,10 +113,15 @@ export async function runSecretsSet(
   for (const pair of pairs) {
     const idx = pair.indexOf("=");
     if (idx === -1) {
-      error(`Invalid format "${pair}" — expected KEY=VALUE`);
-      process.exit(1);
+      // No "=" found — treat the whole arg as a key name and prompt for value
+      const { password } = await import("@inquirer/prompts");
+      const value = await password({
+        message: `Enter value for ${pair}`,
+      });
+      set[pair] = value;
+    } else {
+      set[pair.slice(0, idx)] = pair.slice(idx + 1);
     }
-    set[pair.slice(0, idx)] = pair.slice(idx + 1);
   }
 
   await api.patch<PatchSecretsResponse>(secretsUrl(project, environment), { set });
