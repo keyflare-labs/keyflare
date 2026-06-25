@@ -1,0 +1,30 @@
+{
+  "name": "@keyflare-labs/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP Server for Keyflare",
+  "type": "module",
+  "bin": {
+    "keyflare-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src/"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "zod": "^3.25.76",
+    "hono": "^4.12.12"
+  },
+  "devDependencies": {
+    "@keyflare/shared": "workspace:*",
+    "@types/node": "^22.19.17",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
