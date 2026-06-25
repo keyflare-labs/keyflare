@@ -497,8 +497,8 @@ function buildEphemeralConfig(databaseId: string, name: string): string {
   let config: Record<string, unknown>;
   try {
     config = JSON.parse(stripped) as Record<string, unknown>;
-  } catch (e: any) {
-    throw new Error(`Failed to parse wrangler.jsonc: ${e.message}`);
+  } catch (e: unknown) {
+    throw new Error(`Failed to parse wrangler.jsonc: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   // Set the worker name
@@ -604,8 +604,8 @@ export async function runInit(options: {
     const auth = await resolveCloudflareAuth();
     authEnv = auth.env;
     debug("auth resolved via method=%s", auth.method);
-  } catch (err: any) {
-    error(`Authentication failed: ${err.message}`);
+  } catch (err: unknown) {
+    error(`Authentication failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 
@@ -652,8 +652,8 @@ export async function runInit(options: {
     let config: Record<string, unknown>;
     try {
       config = JSON.parse(stripped) as Record<string, unknown>;
-    } catch (e: any) {
-      error(`Failed to parse wrangler.jsonc: ${e.message}`);
+    } catch (e: unknown) {
+      error(`Failed to parse wrangler.jsonc: ${e instanceof Error ? e.message : String(e)}`);
       process.exit(1);
     }
     config.name = name;
@@ -698,8 +698,8 @@ export async function runInit(options: {
     deploySpinner.succeed(
       `Worker ${workerExists ? "redeployed" : "deployed"}${workerUrl ? `: ${bold(workerUrl)}` : ""}`
     );
-  } catch (err: any) {
-    deploySpinner.fail(`Worker deployment failed: ${err.message}`);
+  } catch (err: unknown) {
+    deploySpinner.fail(`Worker deployment failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 
@@ -711,8 +711,8 @@ export async function runInit(options: {
     try {
       databaseId = await resolveD1DatabaseId(authEnv, name);
       d1Spinner.succeed(`D1 database resolved (id: ${dim(databaseId)})`);
-    } catch (err: any) {
-      d1Spinner.fail(`Failed to resolve D1 database: ${err.message}`);
+    } catch (err: unknown) {
+      d1Spinner.fail(`Failed to resolve D1 database: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);
     }
 
@@ -769,8 +769,8 @@ export async function runInit(options: {
         debug("MASTER_KEY secret stored");
         secretSpinner.succeed("Master key stored as Worker secret");
         masterKeyToDisplay = masterKey;
-      } catch (err: any) {
-        secretSpinner.fail(`Failed to push master key: ${err.message}`);
+      } catch (err: unknown) {
+        secretSpinner.fail(`Failed to push master key: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
       }
     }
@@ -788,14 +788,15 @@ export async function runInit(options: {
       );
       debug("migrations apply completed");
       migrateSpinner.succeed("Database migrations applied");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       if (
-        err.message.includes("already been applied") ||
-        err.message.includes("No migrations to apply")
+        msg.includes("already been applied") ||
+        msg.includes("No migrations to apply")
       ) {
         migrateSpinner.succeed("Database schema already up to date");
       } else {
-        migrateSpinner.fail(`Migrations failed: ${err.message}`);
+        migrateSpinner.fail(`Migrations failed: ${msg}`);
         process.exit(1);
       }
     }
@@ -837,8 +838,8 @@ export async function runInit(options: {
         ? "Instance already initialised"
         : "Instance not yet initialised"
     );
-  } catch (err: any) {
-    preflightSpinner.fail(`Failed to check bootstrap status: ${err.message}`);
+  } catch (err: unknown) {
+    preflightSpinner.fail(`Failed to check bootstrap status: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 
@@ -905,12 +906,12 @@ export async function runInit(options: {
       adminKey = data.key;
       debug("bootstrap created admin key (%s)", redact(adminKey));
       bootstrapSpinner.succeed("User key created");
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof KeyflareApiError && err.code === "CONFLICT") {
         // Normal on re-runs of kfl init — the instance is already initialised.
         bootstrapSpinner.succeed("Instance already initialised — existing API keys preserved");
       } else {
-        bootstrapSpinner.fail(`Bootstrap failed: ${err.message}`);
+        bootstrapSpinner.fail(`Bootstrap failed: ${err instanceof Error ? err.message : String(err)}`);
         process.exit(1);
       }
     }
