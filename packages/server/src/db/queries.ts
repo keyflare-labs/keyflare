@@ -237,6 +237,7 @@ export async function upsertSecret(
       set: {
         keyEncrypted: params.keyEncrypted,
         valueEncrypted: params.valueEncrypted,
+        descriptionEncrypted: params.descriptionEncrypted,
         updatedAt: params.updatedAt,
       },
     });
@@ -249,6 +250,21 @@ export async function deleteSecretByHash(
 ): Promise<boolean> {
   const result = await db
     .delete(secrets)
+    .where(
+      and(eq(secrets.environmentId, environmentId), eq(secrets.keyHash, keyHash))
+    );
+  return (result.meta?.changes ?? 0) > 0;
+}
+
+export async function updateSecretDescriptionByHash(
+  db: DrizzleD1Database,
+  environmentId: string,
+  keyHash: string,
+  descriptionEncrypted: string | null
+): Promise<boolean> {
+  const result = await db
+    .update(secrets)
+    .set({ descriptionEncrypted, updatedAt: new Date().toISOString() })
     .where(
       and(eq(secrets.environmentId, environmentId), eq(secrets.keyHash, keyHash))
     );
