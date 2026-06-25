@@ -22,8 +22,8 @@ function findLocalD1(): string {
       );
     }
     return path.resolve(base, sqlite);
-  } catch (err: any) {
-    if (err.code === "ENOENT") {
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "ENOENT") {
       throw new Error(
         `Local D1 state directory not found (${base}).\n` +
           `Run "npm run dev" (wrangler dev) at least once to create the local D1 database.`

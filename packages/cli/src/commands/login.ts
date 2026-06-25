@@ -85,7 +85,7 @@ export async function runLogin() {
   try {
     await api.get("/keys");
     spinner.succeed("Credentials verified");
-  } catch (err: any) {
+  } catch (err: unknown) {
     spinner.fail("Failed to verify credentials");
     // Restore original state
     if (originalEnvKey) {
@@ -100,7 +100,7 @@ export async function runLogin() {
         error(`API error: ${err.message}`);
       }
     } else {
-      error(err.message);
+      error(`Verification failed: ${err instanceof Error ? err.message : String(err)}`);
     }
     process.exit(1);
   }

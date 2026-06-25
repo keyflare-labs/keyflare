@@ -13,6 +13,33 @@ import {
 import { drizzle } from "drizzle-orm/d1";
 import { apiKeys, projects, environments, secrets } from "../src/db/schema";
 
+export interface Project {
+  name: string;
+  environment_count: number;
+}
+
+export interface Environment {
+  name: string;
+}
+
+export interface ApiResponse {
+  ok: boolean;
+  data: {
+    key: string;
+    prefix: string;
+    name: string;
+    id: string;
+    deleted: string;
+    environments_removed: number;
+    secrets_removed: number;
+    projects: Project[];
+    environments: Environment[];
+    secrets: Record<string, string>;
+  };
+  error: { code: string; message: string };
+  issues: unknown[];
+}
+
 // ─── Helpers ───
 
 async function post(path: string, body?: unknown, apiKey?: string) {
@@ -93,7 +120,7 @@ describe("Keyflare API", () => {
     it("returns health status", async () => {
       const res = await get("/health");
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.ok).toBe(true);
       expect(json.data.version).toBe("0.1.0");
     });
@@ -104,7 +131,7 @@ describe("Keyflare API", () => {
     it("creates first user key when no keys exist", async () => {
       const res = await post("/bootstrap");
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.ok).toBe(true);
       expect(json.data.key).toMatch(/^kfl_user_/);
       expect(json.data.prefix).toHaveLength(12);
@@ -116,7 +143,7 @@ describe("Keyflare API", () => {
       await post("/bootstrap");
       const res = await post("/bootstrap");
       expect(res.status).toBe(409);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.ok).toBe(false);
       expect(json.error.code).toBe("CONFLICT");
     });
@@ -141,14 +168,14 @@ describe("Keyflare API", () => {
 
     beforeEach(async () => {
       const res = await post("/bootstrap");
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       userKey = json.data.key;
     });
 
     it("creates a project", async () => {
       const res = await post("/projects", { name: "my-api" }, userKey);
       expect(res.status).toBe(201);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.ok).toBe(true);
       expect(json.data.name).toBe("my-api");
       expect(json.data.id).toBeTruthy();
@@ -166,9 +193,9 @@ describe("Keyflare API", () => {
 
       const res = await get("/projects", userKey);
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.projects).toHaveLength(2);
-      const names = json.data.projects.map((p: any) => p.name).sort();
+      const names = json.data.projects.map((p: Project) => p.name).sort();
       expect(names).toEqual(["project-a", "project-b"]);
     });
 
@@ -176,12 +203,12 @@ describe("Keyflare API", () => {
       await post("/projects", { name: "to-delete" }, userKey);
       const res = await del("/projects/to-delete", userKey);
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.deleted).toBe("to-delete");
 
       // Confirm it's gone
       const listRes = await get("/projects", userKey);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.projects).toHaveLength(0);
     });
 
@@ -197,9 +224,9 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(listRes.status).toBe(200);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.environments).toHaveLength(2);
-      const names = listJson.data.environments.map((c: any) => c.name).sort();
+      const names = listJson.data.environments.map((c: Environment) => c.name).sort();
       expect(names).toEqual(["dev", "prod"]);
     });
 
@@ -212,7 +239,7 @@ describe("Keyflare API", () => {
       expect(res.status).toBe(201);
       const listRes = await get("/projects/no-defaults/environments", userKey);
       expect(listRes.status).toBe(200);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.environments).toHaveLength(0);
     });
 
@@ -225,13 +252,13 @@ describe("Keyflare API", () => {
       );
       const res = await get("/projects", userKey);
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.projects).toHaveLength(2);
       const withDefaults = json.data.projects.find(
-        (p: any) => p.name === "with-defaults"
+        (p: Project) => p.name === "with-defaults"
       );
       const withoutDefaults = json.data.projects.find(
-        (p: any) => p.name === "without-defaults"
+        (p: Project) => p.name === "without-defaults"
       );
       expect(withDefaults.environment_count).toBe(2);
       expect(withoutDefaults.environment_count).toBe(0);
@@ -249,9 +276,9 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(listRes.status).toBe(200);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.environments).toHaveLength(2);
-      const names = listJson.data.environments.map((c: any) => c.name).sort();
+      const names = listJson.data.environments.map((c: Environment) => c.name).sort();
       expect(names).toEqual(["dev", "prod"]);
     });
 
@@ -267,7 +294,7 @@ describe("Keyflare API", () => {
 
     beforeEach(async () => {
       const bootstrapRes = await post("/bootstrap");
-      const bootstrapJson = (await bootstrapRes.json()) as any;
+      const bootstrapJson = (await bootstrapRes.json()) as ApiResponse;
       userKey = bootstrapJson.data.key;
       await post("/projects", { name: "my-api", environmentless: true }, userKey);
     });
@@ -279,7 +306,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(res.status).toBe(201);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.name).toBe("production");
       expect(json.data.project).toBe("my-api");
     });
@@ -312,7 +339,7 @@ describe("Keyflare API", () => {
 
       const res = await get("/projects/my-api/environments", userKey);
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.environments).toHaveLength(2);
     });
 
@@ -326,7 +353,7 @@ describe("Keyflare API", () => {
       expect(res.status).toBe(200);
 
       const listRes = await get("/projects/my-api/environments", userKey);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.environments).toHaveLength(0);
     });
   });
@@ -337,7 +364,7 @@ describe("Keyflare API", () => {
 
     beforeEach(async () => {
       const bootstrapRes = await post("/bootstrap");
-      const bootstrapJson = (await bootstrapRes.json()) as any;
+      const bootstrapJson = (await bootstrapRes.json()) as ApiResponse;
       userKey = bootstrapJson.data.key;
       await post("/projects", { name: "my-api", environmentless: true }, userKey);
       await post(
@@ -359,7 +386,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(setRes.status).toBe(200);
-      const setJson = (await setRes.json()) as any;
+      const setJson = (await setRes.json()) as ApiResponse;
       expect(setJson.data.count).toBe(2);
 
       // Get secrets
@@ -368,7 +395,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(getRes.status).toBe(200);
-      const getJson = (await getRes.json()) as any;
+      const getJson = (await getRes.json()) as ApiResponse;
       expect(getJson.data.secrets).toEqual({
         DATABASE_URL: "postgres://localhost:5432/db",
         API_KEY: "sk_live_abc123",
@@ -398,7 +425,7 @@ describe("Keyflare API", () => {
         "/projects/my-api/environments/production/secrets",
         userKey
       );
-      const getJson = (await getRes.json()) as any;
+      const getJson = (await getRes.json()) as ApiResponse;
       expect(getJson.data.secrets).toEqual({
         NEW_KEY: "new-value",
       });
@@ -426,7 +453,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(patchRes.status).toBe(200);
-      const patchJson = (await patchRes.json()) as any;
+      const patchJson = (await patchRes.json()) as ApiResponse;
       expect(patchJson.data.set).toBe(2);
       expect(patchJson.data.deleted).toBe(1);
       expect(patchJson.data.total).toBe(3); // A, C, D
@@ -436,7 +463,7 @@ describe("Keyflare API", () => {
         "/projects/my-api/environments/production/secrets",
         userKey
       );
-      const getJson = (await getRes.json()) as any;
+      const getJson = (await getRes.json()) as ApiResponse;
       expect(getJson.data.secrets).toEqual({
         A: "updated",
         C: "3",
@@ -450,7 +477,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.secrets).toEqual({});
     });
 
@@ -477,7 +504,7 @@ describe("Keyflare API", () => {
 
     beforeEach(async () => {
       const res = await post("/bootstrap");
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       userKey = json.data.key;
     });
 
@@ -495,7 +522,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.key).toMatch(/^kfl_sys_/);
       expect(json.data.type).toBe("system");
       expect(json.data.permission).toBe("read");
@@ -508,7 +535,7 @@ describe("Keyflare API", () => {
         userKey
       );
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.key).toMatch(/^kfl_user_/);
     });
 
@@ -520,7 +547,7 @@ describe("Keyflare API", () => {
       );
       const res = await get("/keys", userKey);
       expect(res.status).toBe(200);
-      const json = (await res.json()) as any;
+      const json = (await res.json()) as ApiResponse;
       expect(json.data.keys.length).toBeGreaterThanOrEqual(2); // bootstrap + second
     });
 
@@ -535,7 +562,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const createJson = (await createRes.json()) as any;
+      const createJson = (await createRes.json()) as ApiResponse;
       const prefix = createJson.data.prefix;
       const sysKey = createJson.data.key;
 
@@ -572,7 +599,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await keyRes.json()) as any).data.key;
+      const sysKey = ((await keyRes.json()) as ApiResponse).data.key;
 
       // Reading should work
       const readRes = await get(
@@ -615,7 +642,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await keyRes.json()) as any).data.key;
+      const sysKey = ((await keyRes.json()) as ApiResponse).data.key;
 
       // In-scope should work
       const okRes = await get(
@@ -655,7 +682,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await keyRes.json()) as any).data.key;
+      const sysKey = ((await keyRes.json()) as ApiResponse).data.key;
 
       const prodRes = await get(
         "/projects/my-api/environments/production/secrets",
@@ -681,7 +708,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await keyRes.json()) as any).data.key;
+      const sysKey = ((await keyRes.json()) as ApiResponse).data.key;
 
       const res = await post(
         "/projects",
@@ -702,7 +729,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await keyRes.json()) as any).data.key;
+      const sysKey = ((await keyRes.json()) as ApiResponse).data.key;
 
       const res = await get("/keys", sysKey);
       expect(res.status).toBe(403);
@@ -722,7 +749,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const createJson = (await createRes.json()) as any;
+        const createJson = (await createRes.json()) as ApiResponse;
         const prefix = createJson.data.prefix;
         const _sysKey = createJson.data.key;
 
@@ -739,7 +766,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(200);
-        const updateJson = (await updateRes.json()) as any;
+        const updateJson = (await updateRes.json()) as ApiResponse;
         expect(updateJson.ok).toBe(true);
         expect(updateJson.data.prefix).toBe(prefix);
         expect(updateJson.data.type).toBe("system");
@@ -771,7 +798,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
 
         // Update with completely different scopes
         const updateRes = await put(
@@ -783,7 +810,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(200);
-        const updateJson = (await updateRes.json()) as any;
+        const updateJson = (await updateRes.json()) as ApiResponse;
         expect(updateJson.data.scopes).toHaveLength(1);
         expect(updateJson.data.scopes[0]).toEqual({
           project: "project-c",
@@ -798,7 +825,7 @@ describe("Keyflare API", () => {
           { type: "user", label: "second-user" },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
 
         // Try to update it
         const updateRes = await put(
@@ -810,7 +837,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(400);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.ok).toBe(false);
         expect(json.error.code).toBe("BAD_REQUEST");
         expect(json.error.message).toContain("User keys cannot have their scopes updated");
@@ -828,7 +855,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
         await del(`/keys/${prefix}`, userKey);
 
         // Try to update the revoked key
@@ -841,7 +868,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(400);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.ok).toBe(false);
         expect(json.error.message).toContain("revoked");
       });
@@ -856,7 +883,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(404);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.ok).toBe(false);
         expect(json.error.code).toBe("NOT_FOUND");
       });
@@ -872,7 +899,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
 
         const updateRes = await put(
           `/keys/${prefix}`,
@@ -880,7 +907,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(400);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.error.message).toContain("Required");
       });
 
@@ -895,7 +922,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
 
         const updateRes = await put(
           `/keys/${prefix}`,
@@ -903,7 +930,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(400);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.error.message).toContain("Required");
       });
 
@@ -918,7 +945,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const prefix = ((await createRes.json()) as any).data.prefix;
+        const prefix = ((await createRes.json()) as ApiResponse).data.prefix;
 
         const updateRes = await put(
           `/keys/${prefix}`,
@@ -929,7 +956,7 @@ describe("Keyflare API", () => {
           userKey
         );
         expect(updateRes.status).toBe(400);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.error.message).toContain("Invalid enum value");
       });
 
@@ -945,7 +972,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const sysKey = ((await sysKeyRes.json()) as any).data.key;
+        const sysKey = ((await sysKeyRes.json()) as ApiResponse).data.key;
 
         // Try to update using the system key (should fail)
         const updateRes = await put(
@@ -957,7 +984,7 @@ describe("Keyflare API", () => {
           sysKey
         );
         expect(updateRes.status).toBe(403);
-        const json = (await updateRes.json()) as any;
+        const json = (await updateRes.json()) as ApiResponse;
         expect(json.error.code).toBe("FORBIDDEN");
       });
 
@@ -981,7 +1008,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const createJson = (await createRes.json()) as any;
+        const createJson = (await createRes.json()) as ApiResponse;
         const prefix = createJson.data.prefix;
         const sysKey = createJson.data.key;
 
@@ -1036,7 +1063,7 @@ describe("Keyflare API", () => {
           },
           userKey
         );
-        const createJson = (await createRes.json()) as any;
+        const createJson = (await createRes.json()) as ApiResponse;
         const prefix = createJson.data.prefix;
         const sysKey = createJson.data.key;
 
@@ -1076,7 +1103,7 @@ describe("Keyflare API", () => {
     it("full lifecycle: bootstrap > project > environment > secrets > delete", async () => {
       // 1. Bootstrap
       const bootstrapRes = await post("/bootstrap");
-      const userKey = ((await bootstrapRes.json()) as any).data.key;
+      const userKey = ((await bootstrapRes.json()) as ApiResponse).data.key;
 
       // 2. Create project (environmentless so we control environment names in this test)
       const projRes = await post(
@@ -1137,7 +1164,7 @@ describe("Keyflare API", () => {
         },
         userKey
       );
-      const sysKey = ((await sysKeyRes.json()) as any).data.key;
+      const sysKey = ((await sysKeyRes.json()) as ApiResponse).data.key;
 
       // 7. System key can read production secrets
       const prodSecretsRes = await get(
@@ -1145,7 +1172,7 @@ describe("Keyflare API", () => {
         sysKey
       );
       expect(prodSecretsRes.status).toBe(200);
-      const prodSecrets = ((await prodSecretsRes.json()) as any).data.secrets;
+      const prodSecrets = ((await prodSecretsRes.json()) as ApiResponse).data.secrets;
       expect(prodSecrets.DB_HOST).toBe("prod-db.example.com");
       expect(prodSecrets.SECRET_TOKEN).toBe("prod-token-xyz");
 
@@ -1167,13 +1194,13 @@ describe("Keyflare API", () => {
       // 10. Delete the project (cascade)
       const deleteRes = await del("/projects/webapp", userKey);
       expect(deleteRes.status).toBe(200);
-      const deleteJson = (await deleteRes.json()) as any;
+      const deleteJson = (await deleteRes.json()) as ApiResponse;
       expect(deleteJson.data.environments_removed).toBe(2);
       expect(deleteJson.data.secrets_removed).toBe(6);
 
       // 11. Project is gone
       const listRes = await get("/projects", userKey);
-      const listJson = (await listRes.json()) as any;
+      const listJson = (await listRes.json()) as ApiResponse;
       expect(listJson.data.projects).toHaveLength(0);
     });
   });
@@ -1184,7 +1211,7 @@ describe("Keyflare API", () => {
       const _res = await get("/nonexistent");
       // This will be 401 first because auth is required; let's use a key
       const bootstrapRes = await post("/bootstrap");
-      const key = ((await bootstrapRes.json()) as any).data.key;
+      const key = ((await bootstrapRes.json()) as ApiResponse).data.key;
       const res2 = await get("/nonexistent", key);
       expect(res2.status).toBe(404);
     });
