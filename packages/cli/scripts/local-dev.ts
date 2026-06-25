@@ -121,8 +121,8 @@ async function runDevInit(options: { force?: boolean } = {}) {
   try {
     applyLocalMigrations();
     migrateSpinner.succeed("Local database schema up-to-date");
-  } catch (err: any) {
-    migrateSpinner.fail(`Migrations failed: ${err.message}`);
+  } catch (err: unknown) {
+    migrateSpinner.fail(`Migrations failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 
@@ -152,7 +152,7 @@ async function runDevInit(options: { force?: boolean } = {}) {
     adminKey = data.key;
     debug("local bootstrap created admin key (%s)", redact(adminKey));
     bootstrapSpinner.succeed("User key created");
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof KeyflareApiError && err.code === "CONFLICT") {
       bootstrapSpinner.succeed("Local instance already initialised — existing API keys preserved");
       warn(
@@ -162,7 +162,7 @@ async function runDevInit(options: { force?: boolean } = {}) {
       proc.kill();
       process.exit(0);
     }
-    bootstrapSpinner.fail(`Bootstrap failed: ${err.message}`);
+    bootstrapSpinner.fail(`Bootstrap failed: ${err instanceof Error ? err.message : String(err)}`);
     proc.kill();
     process.exit(1);
   }
