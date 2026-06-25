@@ -56,6 +56,7 @@ export const secrets = sqliteTable(
     keyEncrypted: text("key_encrypted").notNull(),
     keyHash: text("key_hash").notNull(),
     valueEncrypted: text("value_encrypted").notNull(),
+    descriptionEncrypted: text("description_encrypted"),
     updatedAt: text("updated_at").notNull(),
   },
   (table) => [

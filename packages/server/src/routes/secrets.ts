@@ -12,6 +12,7 @@ import {
   deleteSecretByHash,
   deleteAllSecrets,
   countSecrets,
+  updateSecretDescriptionByHash,
 } from "../db/queries.js";
 import type { AuthContext, DerivedKeys } from "../types.js";
 import { jsonOk, jsonError } from "../utils.js";
@@ -45,6 +46,7 @@ export async function handleGetSecrets(
 
   const rows = await getSecretsByEnvironment(db, envResult.id);
   const secrets: Record<string, string> = {};
+  const descriptions: Record<string, string> = {};
 
   for (const row of rows) {
     try {
@@ -54,12 +56,19 @@ export async function handleGetSecrets(
         row.valueEncrypted
       );
       secrets[key] = value;
+      if (row.descriptionEncrypted) {
+        descriptions[key] = await decrypt(derivedKeys.encryptionKey, row.descriptionEncrypted);
+      }
     } catch {
       // Skip corrupted secrets
     }
   }
 
-  return jsonOk<GetSecretsResponse>({ secrets });
+  const response: GetSecretsResponse = { secrets };
+  if (Object.keys(descriptions).length > 0) {
+    response.descriptions = descriptions;
+  }
+  return jsonOk<GetSecretsResponse>(response);
 }
 
 export async function handleSetSecrets(
@@ -107,12 +116,18 @@ export async function handleSetSecrets(
     const keyHash = await hmacSha256(derivedKeys.hmacKey, key);
     const valueEncrypted = await encrypt(derivedKeys.encryptionKey, String(value));
 
+    let descriptionEncrypted: string | null = null;
+    if (body.descriptions && body.descriptions[key]) {
+      descriptionEncrypted = await encrypt(derivedKeys.encryptionKey, body.descriptions[key]);
+    }
+
     await upsertSecret(db, {
       id: crypto.randomUUID(),
       environmentId: envResult.id,
       keyEncrypted,
       keyHash,
       valueEncrypted,
+      descriptionEncrypted,
       updatedAt: now,
     });
     count++;
@@ -173,15 +188,33 @@ export async function handlePatchSecrets(
         String(value)
       );
 
+      let descriptionEncrypted: string | null | undefined = undefined;
+      if (body.descriptions && key in body.descriptions) {
+        const desc = body.descriptions[key];
+        descriptionEncrypted = desc ? await encrypt(derivedKeys.encryptionKey, desc) : null;
+      }
+
       await upsertSecret(db, {
         id: crypto.randomUUID(),
         environmentId: envResult.id,
         keyEncrypted,
         keyHash,
         valueEncrypted,
+        descriptionEncrypted,
         updatedAt: now,
       });
       setCount++;
+    }
+  }
+
+  // Update standalone descriptions
+  if (body.descriptions) {
+    for (const [key, desc] of Object.entries(body.descriptions)) {
+      if (body.set && key in body.set) continue;
+      
+      const keyHash = await hmacSha256(derivedKeys.hmacKey, key);
+      const descriptionEncrypted = desc ? await encrypt(derivedKeys.encryptionKey, desc) : null;
+      await updateSecretDescriptionByHash(db, envResult.id, keyHash, descriptionEncrypted);
     }
   }
 

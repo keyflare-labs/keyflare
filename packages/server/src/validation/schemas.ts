@@ -61,17 +61,19 @@ export const updateKeySchema = z
 export const setSecretsSchema = z
   .object({
     secrets: z.record(z.string()),
+    descriptions: z.record(z.string()).optional(),
   })
   .strict();
 
 export const patchSecretsSchema = z
   .object({
     set: z.record(z.string()).optional(),
+    descriptions: z.record(z.string().nullable()).optional(),
     delete: z.array(nonEmptyString).optional(),
   })
   .strict()
-  .refine((value) => value.set !== undefined || value.delete !== undefined, {
-    message: "At least one of 'set' or 'delete' is required",
+  .refine((value) => value.set !== undefined || value.delete !== undefined || value.descriptions !== undefined, {
+    message: "At least one of 'set', 'descriptions', or 'delete' is required",
   });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;

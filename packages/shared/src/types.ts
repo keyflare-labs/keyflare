@@ -164,10 +164,12 @@ export interface ListEnvironmentsResponse {
 
 export interface GetSecretsResponse {
   secrets: Record<string, string>;
+  descriptions?: Record<string, string>;
 }
 
 export interface SetSecretsRequest {
   secrets: Record<string, string>;
+  descriptions?: Record<string, string>;
 }
 
 export interface SetSecretsResponse {
@@ -178,6 +180,7 @@ export interface SetSecretsResponse {
 
 export interface PatchSecretsRequest {
   set?: Record<string, string>;
+  descriptions?: Record<string, string | null>;
   delete?: string[];
 }
 
